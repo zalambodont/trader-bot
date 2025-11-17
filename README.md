@@ -2,6 +2,25 @@
 
 An AI-powered cryptocurrency trading bot with a React dashboard for automated trading on Binance.
 
+---
+
+## 🚀 NEW USER? START HERE!
+
+**If you're new to this bot or want to get started quickly, please read:**
+
+### **👉 [QUICKSTART.MD - Step-by-Step Setup Guide for Beginners](QUICKSTART.md)**
+
+The quickstart guide includes:
+- Complete installation instructions
+- How to get API keys (Binance & OpenAI)
+- Environment setup for dummies
+- Running your first trade
+- Troubleshooting common issues
+
+**This README contains detailed technical documentation. For a beginner-friendly guide, use the QUICKSTART above.**
+
+---
+
 ## IMPORTANT WARNING
 
 **This bot will NOT make you a billionaire in a short term.** Cryptocurrency trading is extremely risky and volatile. Most traders lose money. This tool is provided for educational purposes. Key facts:
@@ -15,13 +34,21 @@ An AI-powered cryptocurrency trading bot with a React dashboard for automated tr
 
 ## Features
 
-- Multiple trading strategies (RSI+MACD, Moving Average Crossover, Bollinger Bands)
-- Paper trading mode (no real money)
-- Risk management (stop loss, take profit, position sizing)
-- Backtesting engine to test strategies on historical data
-- Real-time React dashboard with live charts
-- WebSocket updates for real-time monitoring
-- RESTful API for bot control
+### Core Trading
+- **AI-Powered Trading Advisor** - GPT-4 analyzes trades before execution
+- **Multi-Pair Trading** - Scan and trade multiple cryptocurrency pairs simultaneously
+- **Multiple Strategies** - RSI+MACD, Moving Average Crossover, Bollinger Bands
+- **Paper Trading Mode** - Practice with simulated money (no real funds required)
+- **Risk Management** - Automated stop loss, take profit, and position sizing
+- **Backtesting Engine** - Test strategies on historical data before going live
+
+### Dashboard Features
+- **Pair Search & Analysis** - Search any pair and view technical analysis with live data
+- **Market Scanner** - Automatically find top trading opportunities
+- **Real-time Charts** - Live price charts with technical indicators
+- **Portfolio Tracking** - Monitor positions, P&L, and performance in real-time
+- **WebSocket Updates** - Instant updates without page refresh
+- **RESTful API** - Full programmatic control of the bot
 
 ## Project Structure
 

@@ -5,12 +5,11 @@ import './MarketScanner.css';
 
 const API_URL = 'http://localhost:5001';
 
-function MarketScanner() {
+function MarketScanner({ selectedPairs, onPairSelect }) {
   const [scanning, setScanning] = useState(false);
   const [opportunities, setOpportunities] = useState([]);
   const [minScore, setMinScore] = useState(65);
   const [lastScan, setLastScan] = useState(null);
-  const [selectedPairs, setSelectedPairs] = useState([]);
   const [botRunning, setBotRunning] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
 
@@ -62,21 +61,19 @@ function MarketScanner() {
   };
 
   const togglePairSelection = (symbol) => {
-    setSelectedPairs(prev => {
-      if (prev.includes(symbol)) {
-        return prev.filter(s => s !== symbol);
-      } else {
-        return [...prev, symbol];
+    onPairSelect(symbol);
+  };
+
+  const selectAll = () => {
+    opportunities.forEach(opp => {
+      if (!selectedPairs.includes(opp.symbol)) {
+        onPairSelect(opp.symbol);
       }
     });
   };
 
-  const selectAll = () => {
-    setSelectedPairs(opportunities.map(opp => opp.symbol));
-  };
-
   const clearSelection = () => {
-    setSelectedPairs([]);
+    selectedPairs.forEach(pair => onPairSelect(pair));
   };
 
   const startTradingSelected = () => {
@@ -142,35 +139,8 @@ function MarketScanner() {
   return (
     <div className="market-scanner">
       <div className="scanner-header">
-        <h2>Market Scanner</h2>
+        <h2>📊 Market Scanner</h2>
         <div className="scanner-controls">
-          <div className="control-group search-group">
-            <label>Search Pairs:</label>
-            <div className="search-container">
-              <input
-                type="text"
-                value={searchQuery}
-                onChange={handleSearchChange}
-                placeholder="Type to search (e.g., BTC, ETH)..."
-                className="search-input"
-                onFocus={() => setShowDropdown(searchQuery.length > 0)}
-                onBlur={() => setTimeout(() => setShowDropdown(false), 200)}
-              />
-              {showDropdown && filteredPairs.length > 0 && (
-                <div className="search-dropdown">
-                  {filteredPairs.map(pair => (
-                    <div
-                      key={pair}
-                      className="dropdown-item"
-                      onClick={() => addPairManually(pair)}
-                    >
-                      {pair}
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-          </div>
           <div className="control-group">
             <label>Min Score:</label>
             <input
@@ -190,20 +160,6 @@ function MarketScanner() {
           </button>
         </div>
       </div>
-
-      {selectedPairs.length > 0 && (
-        <div className="selected-pairs-section">
-          <label>Manually Selected ({selectedPairs.length}):</label>
-          <div className="selected-pairs-chips">
-            {selectedPairs.map(pair => (
-              <span key={pair} className="pair-chip">
-                {pair}
-                <button onClick={() => removePair(pair)} className="remove-chip">×</button>
-              </span>
-            ))}
-          </div>
-        </div>
-      )}
 
       {opportunities.length > 0 && (
         <div className="selection-controls">

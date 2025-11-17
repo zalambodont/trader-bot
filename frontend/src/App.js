@@ -1,12 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import './App.css';
+import PairSearch from './components/PairSearch';
 import MarketScanner from './components/MarketScanner';
 import ActivePositions from './components/ActivePositions';
 
 const API_URL = 'http://localhost:5001';
 
 function App() {
+  const [selectedPairs, setSelectedPairs] = useState([]);
   const [portfolioStats, setPortfolioStats] = useState({
     total_value: 0,
     total_unrealized_pnl: 0,
@@ -77,6 +79,16 @@ function App() {
     }
   };
 
+  const handlePairSelect = (symbol) => {
+    setSelectedPairs(prev => {
+      if (prev.includes(symbol)) {
+        return prev.filter(s => s !== symbol);
+      } else {
+        return [...prev, symbol];
+      }
+    });
+  };
+
   const getPnLColor = (pnl) => {
     if (pnl > 0) return '#00ff00';
     if (pnl < 0) return '#ff4444';
@@ -129,7 +141,8 @@ function App() {
 
       <div className="dashboard">
         <div className="main-panel-full">
-          <MarketScanner />
+          <PairSearch selectedPairs={selectedPairs} onPairSelect={handlePairSelect} />
+          <MarketScanner selectedPairs={selectedPairs} onPairSelect={handlePairSelect} />
           <ActivePositions />
         </div>
       </div>

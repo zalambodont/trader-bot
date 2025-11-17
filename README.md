@@ -66,6 +66,8 @@ The quickstart guide includes:
 - **Market Scanner** - Automatically find top trading opportunities
 - **Real-time Charts** - Live price charts with technical indicators
 - **Portfolio Tracking** - Monitor positions, P&L, and performance in real-time
+- **24-Hour Trade History** - View closed positions from the last 24 hours with detailed metrics
+- **Clean Single-Scrollbar UX** - Optimized interface with one main scrollbar for better usability
 - **WebSocket Updates** - Instant updates without page refresh
 - **RESTful API** - Full programmatic control of the bot
 

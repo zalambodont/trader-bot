@@ -324,8 +324,18 @@ python multi_pair_bot.py
 The dashboard shows:
 - **Portfolio Value**: Total account value
 - **P&L**: Profit/Loss (green = profit, red = loss)
-- **Positions**: Currently open trades
+- **Active Positions**: Currently open trades with live P&L
+- **24-Hour Trade History**: Closed positions from the last 24 hours (below active positions)
 - **AI Analysis**: What the AI thinks about each trade
+
+**💡 Trade History Table shows:**
+- Symbol, direction (LONG/SHORT), entry/exit prices
+- Profit/Loss for each closed trade
+- Close reason (STOP_LOSS, TAKE_PROFIT, etc.)
+- Win/loss indicator (green border = win, red = loss)
+
+**🛡️ Loss Cooldown Protection:**
+The bot automatically prevents re-entry on pairs that hit stop loss for 30 minutes. This gives the market time to stabilize and prevents revenge trading. Profitable trades can re-enter immediately.
 
 ### 5. Backend Console Logs
 

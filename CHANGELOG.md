@@ -24,7 +24,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Removed unused imports from ActivePositions.js
 - Fixed React Hook dependency warnings
 
-## [0.2.0] - 2024-11-17
+## [0.2.0] - 2025-11-17
 
 ### Added
 - Multi-pair trading support
@@ -50,7 +50,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Improved .gitignore to prevent credential leaks
 - Added security warnings in documentation
 
-## [0.1.0] - 2024-11-16
+## [0.1.0] - 2025-11-16
 
 ### Added
 - Initial project setup

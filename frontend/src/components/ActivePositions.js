@@ -9,6 +9,7 @@ function ActivePositions() {
   const [positions, setPositions] = useState([]);
   const [portfolio, setPortfolio] = useState(null);
   const [chartData, setChartData] = useState({});
+  const [tradeHistory, setTradeHistory] = useState([]);
 
   const fetchPositions = useCallback(async () => {
     try {
@@ -28,11 +29,27 @@ function ActivePositions() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  const fetchTradeHistory = useCallback(async () => {
+    try {
+      const response = await axios.get(`${API_URL}/api/multi-bot/trade-history?hours=24`);
+      if (response.data.trades) {
+        setTradeHistory(response.data.trades);
+      }
+    } catch (error) {
+      console.error('Failed to fetch trade history:', error);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   useEffect(() => {
     fetchPositions();
-    const interval = setInterval(fetchPositions, 5000); // Update every 5 seconds
+    fetchTradeHistory();
+    const interval = setInterval(() => {
+      fetchPositions();
+      fetchTradeHistory();
+    }, 10000); // Update every 10 seconds
     return () => clearInterval(interval);
-  }, [fetchPositions]);
+  }, [fetchPositions, fetchTradeHistory]);
 
   const fetchChartForSymbol = async (symbol) => {
     if (chartData[symbol]) return; // Already have it
@@ -204,6 +221,57 @@ function ActivePositions() {
               <span>Avg Loss:</span>
               <strong style={{ color: '#ff4444' }}>${portfolio.avg_loss?.toFixed(2) || '0.00'}</strong>
             </div>
+          </div>
+        </div>
+      )}
+
+      {tradeHistory.length > 0 && (
+        <div className="trade-history-section">
+          <h4>24-Hour Trade History ({tradeHistory.length})</h4>
+          <div className="table-container">
+            <table className="trade-history-table">
+              <thead>
+                <tr>
+                  <th>Symbol</th>
+                  <th>Direction</th>
+                  <th>Entry Price</th>
+                  <th>Exit Price</th>
+                  <th>Quantity</th>
+                  <th>P&L</th>
+                  <th>P&L %</th>
+                  <th>Reason</th>
+                  <th>Exit Time</th>
+                </tr>
+              </thead>
+              <tbody>
+                {tradeHistory.map((trade, index) => (
+                  <tr key={index} className={trade.pnl >= 0 ? 'trade-win' : 'trade-loss'}>
+                    <td className="trade-symbol">{trade.symbol}</td>
+                    <td className="trade-direction" style={{ color: getDirectionColor(trade.direction) }}>
+                      {trade.direction}
+                    </td>
+                    <td>${trade.entry_price?.toFixed(8)}</td>
+                    <td>${trade.exit_price?.toFixed(8)}</td>
+                    <td>{trade.quantity?.toFixed(6)}</td>
+                    <td style={{ color: getPnLColor(trade.pnl), fontWeight: 'bold' }}>
+                      {trade.pnl >= 0 ? '+' : ''}${trade.pnl?.toFixed(2)}
+                    </td>
+                    <td style={{ color: getPnLColor(trade.pnl_pct), fontWeight: 'bold' }}>
+                      {trade.pnl_pct >= 0 ? '+' : ''}{trade.pnl_pct?.toFixed(2)}%
+                    </td>
+                    <td className="trade-reason">{trade.reason}</td>
+                    <td className="trade-time">
+                      {new Date(trade.exit_time).toLocaleString('en-US', {
+                        month: 'short',
+                        day: 'numeric',
+                        hour: '2-digit',
+                        minute: '2-digit'
+                      })}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
         </div>
       )}

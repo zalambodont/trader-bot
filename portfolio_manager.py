@@ -259,6 +259,39 @@ class PortfolioManager:
             'positions': list(self.positions.values())
         }
 
+    def get_recent_trade_history(self, hours=24):
+        """
+        Get recent trade history from the last N hours
+
+        Args:
+            hours: Number of hours to look back (default: 24)
+
+        Returns:
+            List of recent trades, sorted by exit_time (newest first)
+        """
+        from datetime import datetime, timedelta
+
+        if not self.trade_history:
+            return []
+
+        cutoff_time = datetime.now() - timedelta(hours=hours)
+
+        # Filter trades from the last N hours
+        recent_trades = []
+        for trade in self.trade_history:
+            try:
+                exit_time = datetime.fromisoformat(trade['exit_time'])
+                if exit_time >= cutoff_time:
+                    recent_trades.append(trade)
+            except (ValueError, KeyError):
+                # Skip trades with invalid timestamps
+                continue
+
+        # Sort by exit_time, newest first
+        recent_trades.sort(key=lambda t: t['exit_time'], reverse=True)
+
+        return recent_trades
+
     def get_position(self, symbol):
         """Get position info for a symbol"""
         return self.positions.get(symbol)

@@ -516,6 +516,32 @@ def get_multi_bot_status():
     return jsonify(status)
 
 
+@app.route('/api/multi-bot/trade-history', methods=['GET'])
+def get_trade_history():
+    """Get recent trade history (last 24 hours)"""
+    try:
+        hours = request.args.get('hours', 24, type=int)
+
+        if not multi_pair_state['bot']:
+            return jsonify({
+                'success': True,
+                'trades': [],
+                'count': 0
+            })
+
+        # Get trade history from portfolio manager
+        portfolio = multi_pair_state['bot'].portfolio
+        recent_trades = portfolio.get_recent_trade_history(hours=hours)
+
+        return jsonify({
+            'success': True,
+            'trades': recent_trades,
+            'count': len(recent_trades)
+        })
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+
 @app.route('/api/mode', methods=['POST'])
 def set_trading_mode():
     """Switch between single-pair and multi-pair mode"""

@@ -312,7 +312,7 @@ function PairSearch({ selectedPairs, onPairSelect }) {
                     </div>
                     <div className="pair-row">
                       <span>24h Volume:</span>
-                      <strong>${(pair.volume_24h / 1000000).toFixed(2)}M</strong>
+                      <strong>${pair.volume_24h ? (pair.volume_24h / 1000000).toFixed(2) : '0.00'}M</strong>
                     </div>
                     <div className="pair-row">
                       <span>Volatility:</span>

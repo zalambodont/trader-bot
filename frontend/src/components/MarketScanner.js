@@ -12,6 +12,7 @@ function MarketScanner({ selectedPairs, onPairSelect }) {
   const [lastScan, setLastScan] = useState(null);
   const [botRunning, setBotRunning] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
+  const [isScannerCollapsed, setIsScannerCollapsed] = useState(false);
 
   const scanMarket = async () => {
     setScanning(true);
@@ -136,9 +137,16 @@ function MarketScanner({ selectedPairs, onPairSelect }) {
     return '#888';
   };
 
+  const toggleScannerAccordion = (event) => {
+    if (event && event.target.closest('button')) {
+      return;
+    }
+    setIsScannerCollapsed(prev => !prev);
+  };
+
   return (
     <div className="market-scanner">
-      <div className="scanner-header">
+      <div className="scanner-header" onClick={toggleScannerAccordion}>
         <h2>📊 Market Scanner</h2>
         <div className="scanner-controls">
           <div className="control-group">
@@ -158,11 +166,19 @@ function MarketScanner({ selectedPairs, onPairSelect }) {
           >
             {scanning ? 'Scanning...' : 'Scan Market'}
           </button>
+
+          <span className="accordion-toggle-icon" aria-hidden="true">
+            {isScannerCollapsed ? 'Expand' : 'Collapse'}
+          </span>
         </div>
+        
       </div>
 
       {opportunities.length > 0 && (
-        <div className="selection-controls">
+        <div
+          className={`selection-controls`}
+          
+        >
           <div className="selection-info">
             {selectedPairs.length > 0 ? (
               <span>{selectedPairs.length} pair{selectedPairs.length !== 1 ? 's' : ''} selected</span>
@@ -190,14 +206,17 @@ function MarketScanner({ selectedPairs, onPairSelect }) {
         </div>
       )}
 
-      {lastScan && (
+      {lastScan && !isScannerCollapsed && (
         <div className="scan-info">
           Last scan: {lastScan.toLocaleTimeString()} |
           Found {opportunities.length} opportunities
         </div>
       )}
 
-      <div className="opportunities-grid">
+      <div
+        className={`opportunities-grid ${isScannerCollapsed ? 'collapsed' : ''}`}
+        aria-hidden={isScannerCollapsed}
+      >
         {opportunities.length === 0 ? (
           <div className="no-opportunities">
             No opportunities found. Try lowering the minimum score or click "Scan Market".

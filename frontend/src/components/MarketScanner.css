@@ -77,7 +77,7 @@
   border-radius: 5px;
 }
 
-.selection-controls {
+.market-scanner .selection-controls {
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -87,6 +87,20 @@
   margin-bottom: 15px;
   flex-wrap: wrap;
   gap: 10px;
+}
+
+.market-scanner .accordion-toggle-icon {
+  font-size: 12px;
+  color: #00ff00;
+  padding: 4px 12px;
+  border: 1px solid #00ff00;
+  border-radius: 999px;
+  background: rgba(0, 255, 0, 0.15);
+  cursor: pointer;
+}
+
+.market-scanner .selection-controls.collapsed .accordion-toggle-icon {
+  background: rgba(255, 255, 255, 0.08);
 }
 
 .selection-info {
@@ -170,6 +184,10 @@
   grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
   gap: 15px;
   /* No max-height or overflow - use main page scrollbar only */
+}
+
+.opportunities-grid.collapsed {
+  display: none;
 }
 
 .no-opportunities {

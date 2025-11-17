@@ -13,6 +13,7 @@ function PairSearch({ selectedPairs, onPairSelect }) {
   const [loading, setLoading] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
   const [botRunning, setBotRunning] = useState(false);
+  const [isPairsCollapsed, setIsPairsCollapsed] = useState(false);
 
   useEffect(() => {
     fetchAllPairs();
@@ -174,86 +175,115 @@ function PairSearch({ selectedPairs, onPairSelect }) {
     selectedPairs.forEach(pair => onPairSelect(pair));
   };
 
+  const togglePairsAccordion = () => {
+    setIsPairsCollapsed(prev => !prev);
+  };
+
+  const handlePairsHeaderKeyDown = (event) => {
+    if (event.key === 'Enter' || event.key === ' ') {
+      event.preventDefault();
+      togglePairsAccordion();
+    }
+  };
+
   return (
     <div className="pair-search">
-      <div className="pair-search-header">
-        <h2>🔍 Search & Analyze Pairs</h2>
-        <p className="search-subtitle">Search for any trading pair and see its technical analysis</p>
+      <div
+        className={`pair-search-header ${isPairsCollapsed ? 'collapsed' : ''}`}
+        onClick={togglePairsAccordion}
+        onKeyDown={handlePairsHeaderKeyDown}
+        role="button"
+        tabIndex={0}
+      >
+        <div className="pair-search-header-text">
+          <h2>🔍 Search & Analyze Pairs</h2>
+          <p className="search-subtitle">Search for any trading pair and see its technical analysis</p>
+        </div>
+        <span className="accordion-toggle-icon" aria-hidden="true">
+          {isPairsCollapsed ? 'Expand' : 'Collapse'}
+        </span>
       </div>
 
-      <div className="search-controls">
-        <div className="search-container">
-          <input
-            type="text"
-            value={searchQuery}
-            onChange={handleSearchChange}
-            placeholder="Search for pairs (e.g., BTC, ETH, DASH, ZEC)..."
-            className="search-input-large"
-            onFocus={() => setShowDropdown(searchQuery.length > 0)}
-            onBlur={() => setTimeout(() => setShowDropdown(false), 200)}
-          />
-          {showDropdown && filteredPairs.length > 0 && (
-            <div className="search-dropdown-large">
-              {filteredPairs.map(pair => (
-                <div
-                  key={pair}
-                  className="dropdown-item-large"
-                  onClick={() => addPairToSearch(pair)}
-                >
-                  <span className="pair-name">{pair}</span>
-                  <span className="add-icon">+</span>
-                </div>
-              ))}
-            </div>
-          )}
-          {showDropdown && filteredPairs.length === 0 && searchQuery.length > 0 && (
-            <div className="search-dropdown-large">
-              <div className="dropdown-item-large no-results">
-                No pairs found for "{searchQuery}"
+      {!isPairsCollapsed && (
+        <div className="search-controls">
+          <div className="search-container">
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={handleSearchChange}
+              placeholder="Search for pairs (e.g., BTC, ETH, DASH, ZEC)..."
+              className="search-input-large"
+              onFocus={() => setShowDropdown(searchQuery.length > 0)}
+              onBlur={() => setTimeout(() => setShowDropdown(false), 200)}
+            />
+            {showDropdown && filteredPairs.length > 0 && (
+              <div className="search-dropdown-large">
+                {filteredPairs.map(pair => (
+                  <div
+                    key={pair}
+                    className="dropdown-item-large"
+                    onClick={() => addPairToSearch(pair)}
+                  >
+                    <span className="pair-name">{pair}</span>
+                    <span className="add-icon">+</span>
+                  </div>
+                ))}
               </div>
-            </div>
-          )}
+            )}
+            {showDropdown && filteredPairs.length === 0 && searchQuery.length > 0 && (
+              <div className="search-dropdown-large">
+                <div className="dropdown-item-large no-results">
+                  No pairs found for "{searchQuery}"
+                </div>
+              </div>
+            )}
+          </div>
+          {loading && <span className="loading-spinner">Analyzing...</span>}
         </div>
-        {loading && <span className="loading-spinner">Analyzing...</span>}
-      </div>
+      )}
 
       {searchedPairs.length > 0 && (
         <>
-          <div className="selection-controls">
-            <div className="selection-info">
-              <h3>Analyzed Pairs ({searchedPairs.length})</h3>
-              {selectedPairs.length > 0 && (
-                <span className="selected-count">
-                  {selectedPairs.length} pair{selectedPairs.length !== 1 ? 's' : ''} selected
-                </span>
-              )}
-            </div>
-            <div className="selection-buttons">
-              <button onClick={selectAllSearched} className="select-btn">Select All</button>
-              <button onClick={clearSelection} className="select-btn">Clear Selection</button>
-              <button
-                onClick={() => setSearchedPairs([])}
-                className="clear-all-btn"
-              >
-                Clear All Pairs
-              </button>
-              {botRunning ? (
-                <button onClick={stopTrading} className="stop-trading-btn">
-                  Stop Trading
-                </button>
-              ) : (
+          {!isPairsCollapsed && (
+            <div className="selection-controls">
+              <div className="selection-info">
+                <h3>Analyzed Pairs ({searchedPairs.length})</h3>
+                {selectedPairs.length > 0 && (
+                  <span className="selected-count">
+                    {selectedPairs.length} pair{selectedPairs.length !== 1 ? 's' : ''} selected
+                  </span>
+                )}
+              </div>
+              <div className="selection-buttons">
+                <button onClick={selectAllSearched} className="select-btn">Select All</button>
+                <button onClick={clearSelection} className="select-btn">Clear Selection</button>
                 <button
-                  onClick={startTradingSelected}
-                  disabled={selectedPairs.length === 0}
-                  className="start-trading-btn"
+                  onClick={() => setSearchedPairs([])}
+                  className="clear-all-btn"
                 >
-                  Configure & Trade ({selectedPairs.length})
+                  Clear All Pairs
                 </button>
-              )}
+                {botRunning ? (
+                  <button onClick={stopTrading} className="stop-trading-btn">
+                    Stop Trading
+                  </button>
+                ) : (
+                  <button
+                    onClick={startTradingSelected}
+                    disabled={selectedPairs.length === 0}
+                    className="start-trading-btn"
+                  >
+                    Configure & Trade ({selectedPairs.length})
+                  </button>
+                )}
+              </div>
             </div>
-          </div>
+          )}
 
-          <div className="searched-pairs-grid">
+          <div
+            className={`searched-pairs-grid ${isPairsCollapsed ? 'collapsed' : ''}`}
+            aria-hidden={isPairsCollapsed}
+          >
             {searchedPairs.map((pair, index) => {
               const isSelected = selectedPairs.includes(pair.symbol);
               return (
@@ -340,7 +370,7 @@ function PairSearch({ selectedPairs, onPairSelect }) {
         </>
       )}
 
-      {searchedPairs.length === 0 && (
+      {!isPairsCollapsed && searchedPairs.length === 0 && (
         <div className="empty-search">
           <p>🔎 Search for pairs above to see their technical analysis</p>
           <p className="hint">Try searching: BTC, ETH, DASH, ZEC, SOL, ADA...</p>

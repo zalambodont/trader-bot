@@ -1,0 +1,12 @@
+.chart-panel {
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.05) 0%, rgba(59, 130, 246, 0.05) 100%);
+}
+
+.chart-loading {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 400px;
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 1.1rem;
+}

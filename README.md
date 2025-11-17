@@ -100,22 +100,23 @@ nano .env
 Edit `.env` file:
 
 ```env
-# Binance API (optional for paper trading)
-BINANCE_API_KEY=your_key_here
-BINANCE_API_SECRET=your_secret_here
+# =============================================================================
+# API CREDENTIALS
+# =============================================================================
 
-# ALWAYS START WITH PAPER TRADING!
-TRADING_MODE=paper
+# Binance API Credentials (OPTIONAL - only needed for LIVE trading)
+# Get these from https://www.binance.com/en/my/settings/api-management
+# Leave BLANK for paper trading (recommended for beginners)
+BINANCE_API_KEY=
+BINANCE_API_SECRET=
 
-# Trading settings
-TRADE_SYMBOL=BTCUSDT
-TRADE_AMOUNT_USDT=100
-MAX_POSITIONS=3
-RISK_PER_TRADE=0.02
-
-# Strategy
-STRATEGY=rsi_macd
+# OpenAI API Key (OPTIONAL - for AI trading advisor)
+# Get from https://platform.openai.com/api-keys
+# Leave BLANK to disable AI analysis (bot will use technical indicators only)
+OPENAI_API_KEY=
 ```
+
+**Note:** All trading settings (capital, positions, stop loss, etc.) are configured through the dashboard when you start trading. You don't need to set them in the .env file.
 
 ### 4. Frontend Setup
 
@@ -163,10 +164,10 @@ python run_backtest.py
 
 ### Paper Trading (Recommended First Step)
 
-1. Make sure `.env` has `TRADING_MODE=paper`
+1. No API keys required - works out of the box!
 2. Start the bot using one of the methods above
-3. Monitor performance and adjust settings
-4. Run backtests to evaluate strategy effectiveness
+3. Select "Paper" mode in the dashboard when you click "Configure & Trade"
+4. Monitor performance and adjust settings through the dashboard
 5. Only consider live trading after consistent paper trading success
 
 ### Live Trading (High Risk!)
@@ -183,16 +184,17 @@ python run_backtest.py
    - Add IP whitelist for security
    - **DO NOT** enable withdrawal permissions
 
-2. Update `.env`:
+2. Update `.env` with your Binance API keys:
    ```env
-   TRADING_MODE=live
    BINANCE_API_KEY=your_real_key
    BINANCE_API_SECRET=your_real_secret
    ```
 
-3. Start with SMALL amounts (`TRADE_AMOUNT_USDT=10` or similar)
+3. Start the dashboard and select "Live" mode when you click "Configure & Trade"
 
-4. Monitor constantly in the first hours/days
+4. Start with SMALL capital amounts ($10-50) in the dashboard settings
+
+5. Monitor constantly in the first hours/days
 
 ## Strategies
 
@@ -270,7 +272,7 @@ class MyStrategy(TradingStrategy):
 
 ### Adjusting Risk Parameters
 
-Edit `.env` or modify `risk_management.py` directly.
+All risk parameters (stop loss %, take profit %, max positions, etc.) are configured through the dashboard in the "Configure & Trade" settings modal. You can adjust them for each trading session without editing any files.
 
 ## Performance Tips
 

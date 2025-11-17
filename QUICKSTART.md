@@ -178,7 +178,7 @@ BINANCE_API_SECRET=
 OPENAI_API_KEY=
 
 # Leave them BLANK - the bot works without them!
-# Just make sure TRADING_MODE=paper (it should be by default)
+# You'll configure trading mode (paper/live) in the dashboard when you start trading
 ```
 
 **Option B: Add Your API Keys**
@@ -186,29 +186,27 @@ OPENAI_API_KEY=
 Edit the `.env` file with your keys:
 
 ```env
-# Binance API (leave blank for paper trading)
+# =============================================================================
+# API CREDENTIALS
+# =============================================================================
+
+# Binance API Credentials (OPTIONAL - only needed for LIVE trading)
+# Get these from https://www.binance.com/en/my/settings/api-management
+# Leave BLANK for paper trading (recommended for beginners)
 BINANCE_API_KEY=YOUR_BINANCE_API_KEY_HERE
 BINANCE_API_SECRET=YOUR_BINANCE_SECRET_KEY_HERE
 
-# OpenAI API (for AI advisor - optional)
+# OpenAI API Key (OPTIONAL - for AI trading advisor)
+# Get from https://platform.openai.com/api-keys
+# Leave BLANK to disable AI analysis (bot will use technical indicators only)
 OPENAI_API_KEY=sk-proj-your-openai-key-here
 
-# Trading Configuration
-TRADING_MODE=paper          # ALWAYS start with 'paper'! Change to 'live' only when ready
-TRADE_SYMBOL=BTCUSDT        # What crypto pair to trade
-TRADE_AMOUNT_USDT=100       # How much to trade per position
-MAX_POSITIONS=3             # Max number of positions at once
-RISK_PER_TRADE=0.02         # Risk 2% per trade
-
-# Strategy Settings
-STRATEGY=rsi_macd           # Which trading strategy to use
-RSI_PERIOD=14               # RSI calculation period
-RSI_OVERSOLD=30             # RSI oversold threshold
-RSI_OVERBOUGHT=70           # RSI overbought threshold
-
-# Risk Management
-STOP_LOSS_PERCENT=2.0       # Stop loss at -2%
-TAKE_PROFIT_PERCENT=5.0     # Take profit at +5%
+# =============================================================================
+# TRADING CONFIGURATION
+# =============================================================================
+# NOTE: All trading settings (capital, max positions, stop loss, take profit, etc.)
+# are now configured through the dashboard when you start trading.
+# You don't need to set them here anymore!
 ```
 
 **Important Notes:**
@@ -465,20 +463,25 @@ This is usually normal! The bot waits for good opportunities.
 
 ### In `.env` file:
 
+| Setting | What It Does | Required? |
+|---------|-------------|-----------|
+| `BINANCE_API_KEY` | Your Binance API key | Only for live trading |
+| `BINANCE_API_SECRET` | Your Binance secret key | Only for live trading |
+| `OPENAI_API_KEY` | Your OpenAI API key | Optional (for AI advisor) |
+
+**Note:** All trading configuration is now done through the dashboard!
+
+### In Dashboard (Configure & Trade):
+
 | Setting | What It Does | Example |
 |---------|-------------|---------|
-| `TRADING_MODE` | Paper or live trading | `paper` |
-| `INITIAL_BALANCE` | Starting capital | `10000` |
-| `MAX_POSITIONS` | Max trades at once | `3` |
-| `MIN_OPPORTUNITY_SCORE` | Quality threshold (0-100) | `65` |
-| `STOP_LOSS_PCT` | Cut losses at this % | `0.02` (2%) |
-| `TAKE_PROFIT_PCT` | Take profit at this % | `0.04` (4%) |
-| `SCAN_INTERVAL` | How often to scan (seconds) | `180` (3 min) |
-| `USE_AI` | Enable/disable AI advisor | `True` |
-
-### In Dashboard:
-
-Same settings, but configured per trading session when you click "Configure & Trade"
+| `Total Capital` | Starting capital | `$10,000` |
+| `Max Positions` | Max trades at once | `3` |
+| `Min Score` | Quality threshold (0-100) | `65` |
+| `Stop Loss %` | Cut losses at this % | `2%` |
+| `Take Profit %` | Take profit at this % | `4%` |
+| `Scan Interval` | How often to scan (seconds) | `180` (3 min) |
+| `Trading Mode` | Paper or live trading | `Paper` |
 
 ---
 

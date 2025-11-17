@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
-import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
+import { LineChart, Line, Tooltip, ResponsiveContainer } from 'recharts';
 import './ActivePositions.css';
 
 const API_URL = 'http://localhost:5001';
@@ -10,13 +10,7 @@ function ActivePositions() {
   const [portfolio, setPortfolio] = useState(null);
   const [chartData, setChartData] = useState({});
 
-  useEffect(() => {
-    fetchPositions();
-    const interval = setInterval(fetchPositions, 5000); // Update every 5 seconds
-    return () => clearInterval(interval);
-  }, []);
-
-  const fetchPositions = async () => {
+  const fetchPositions = useCallback(async () => {
     try {
       const response = await axios.get(`${API_URL}/api/multi-bot/status`);
       if (response.data.portfolio) {
@@ -31,7 +25,14 @@ function ActivePositions() {
     } catch (error) {
       console.error('Failed to fetch positions:', error);
     }
-  };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  useEffect(() => {
+    fetchPositions();
+    const interval = setInterval(fetchPositions, 5000); // Update every 5 seconds
+    return () => clearInterval(interval);
+  }, [fetchPositions]);
 
   const fetchChartForSymbol = async (symbol) => {
     if (chartData[symbol]) return; // Already have it

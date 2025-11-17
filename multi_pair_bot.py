@@ -128,46 +128,63 @@ class MultiPairBot:
                 print(f"   ✅ {symbol} cooldown expired, can trade again")
                 logger.info(f"{symbol} cooldown expired")
 
-        # FORCE TRADE if this is a manually selected pair
-        if self.selected_pairs and symbol in self.selected_pairs:
+        # Check if this is a manually selected pair
+        is_manual_selection = self.selected_pairs and symbol in self.selected_pairs
+
+        if is_manual_selection:
             print(f"\n🎯 MANUAL SELECTION: {symbol}")
-            print(f"   ➤ FORCING TRADE (bypassing AI/technical checks)")
-            logger.info(f"✓ MANUAL SELECTION: {symbol} - FORCING TRADE (bypassing AI/technical checks)")
+            logger.info(f"✓ MANUAL SELECTION: {symbol}")
             # Ensure it has a direction for trade execution
             if not opportunity['direction']:
                 # Force a direction based on price momentum or just default to LONG
                 opportunity['direction'] = 'LONG'
                 print(f"   ➤ Setting default direction: LONG")
                 logger.info(f"  Setting default direction: LONG")
-            return True
 
         # For non-manual pairs, use normal checks
-        # Check opportunity score
-        if opportunity['score'] < self.min_opportunity_score:
-            return False
+        if not is_manual_selection:
+            # Check opportunity score
+            if opportunity['score'] < self.min_opportunity_score:
+                return False
 
-        # Check if has clear direction
-        if not opportunity['direction']:
-            return False
+            # Check if has clear direction
+            if not opportunity['direction']:
+                return False
 
         # Use AI advisor for additional validation (if enabled)
         if self.use_ai:
             try:
-                print(f"\n🤖 AI ANALYZING: {symbol}...")
+                if is_manual_selection:
+                    print(f"\n🤖 AI ANALYZING (MANUAL OVERRIDE): {symbol}...")
+                else:
+                    print(f"\n🤖 AI ANALYZING: {symbol}...")
+
                 ai_analysis = self.ai_advisor.analyze_opportunity(opportunity)
 
-                # AI must approve the trade
-                if not ai_analysis['should_trade']:
-                    print(f"   ❌ AI REJECTED: {symbol}")
-                    print(f"      Reason: {ai_analysis['reasoning'][:100]}...")
-                    print(f"      Confidence: {ai_analysis['confidence']:.0%}, Risk: {ai_analysis['risk_assessment'].upper()}")
-                    logger.info(f"AI rejected {symbol}: {ai_analysis['reasoning']}")
-                    return False
+                # For manual selections, log AI opinion but proceed anyway
+                if is_manual_selection:
+                    if not ai_analysis['should_trade']:
+                        print(f"   ⚠️  AI CAUTION: {symbol} (proceeding anyway - manual selection)")
+                        print(f"      AI Reason: {ai_analysis['reasoning'][:100]}...")
+                        print(f"      Confidence: {ai_analysis['confidence']:.0%}, Risk: {ai_analysis['risk_assessment'].upper()}")
+                        logger.info(f"AI cautioned {symbol} but proceeding (manual override): {ai_analysis['reasoning']}")
+                    else:
+                        print(f"   ✅ AI APPROVED: {symbol}")
+                        print(f"      Confidence: {ai_analysis['confidence']:.0%}, Risk: {ai_analysis['risk_assessment'].upper()}")
+                        logger.info(f"AI approved {symbol} (confidence: {ai_analysis['confidence']:.0%}, risk: {ai_analysis['risk_assessment']})")
+                else:
+                    # For non-manual pairs, AI must approve the trade
+                    if not ai_analysis['should_trade']:
+                        print(f"   ❌ AI REJECTED: {symbol}")
+                        print(f"      Reason: {ai_analysis['reasoning'][:100]}...")
+                        print(f"      Confidence: {ai_analysis['confidence']:.0%}, Risk: {ai_analysis['risk_assessment'].upper()}")
+                        logger.info(f"AI rejected {symbol}: {ai_analysis['reasoning']}")
+                        return False
 
-                # Log AI recommendation
-                print(f"   ✅ AI APPROVED: {symbol}")
-                print(f"      Confidence: {ai_analysis['confidence']:.0%}, Risk: {ai_analysis['risk_assessment'].upper()}")
-                logger.info(f"AI approved {symbol} (confidence: {ai_analysis['confidence']:.0%}, risk: {ai_analysis['risk_assessment']})")
+                    # Log AI recommendation
+                    print(f"   ✅ AI APPROVED: {symbol}")
+                    print(f"      Confidence: {ai_analysis['confidence']:.0%}, Risk: {ai_analysis['risk_assessment'].upper()}")
+                    logger.info(f"AI approved {symbol} (confidence: {ai_analysis['confidence']:.0%}, risk: {ai_analysis['risk_assessment']})")
 
                 # Store AI analysis for logging
                 opportunity['ai_analysis'] = ai_analysis
@@ -175,7 +192,7 @@ class MultiPairBot:
             except Exception as e:
                 print(f"   ⚠️  AI ANALYSIS FAILED for {symbol}: {e}")
                 logger.warning(f"AI analysis failed for {symbol}, using technical score only: {e}")
-                # Continue without AI if it fails
+                # Continue without AI if it fails (or if manual selection)
 
         return True
 

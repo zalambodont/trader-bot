@@ -57,3 +57,31 @@ Thumbs.db
 *.csv
 *.db
 *.sqlite
+
+# Trading data and logs
+trades/
+backtest_results/
+logs/
+nohup.out
+
+# Temporary files
+*.tmp
+*.bak
+*.swp
+.cache/
+
+# Coverage reports
+htmlcov/
+.coverage
+.coverage.*
+coverage.xml
+*.cover
+
+# pytest
+.pytest_cache/
+
+# Jupyter Notebook
+.ipynb_checkpoints
+
+# pyenv
+.python-version

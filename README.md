@@ -1,6 +1,22 @@
+<div align="center">
+
 # Crypto Trading Bot
 
-An AI-powered cryptocurrency trading bot with a React dashboard for automated trading on Binance.
+### AI-Powered Multi-Pair Cryptocurrency Trading Bot
+
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Python 3.8+](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/downloads/)
+[![Node 16+](https://img.shields.io/badge/node-16+-green.svg)](https://nodejs.org/)
+[![React](https://img.shields.io/badge/react-18.0+-61DAFB.svg)](https://reactjs.org/)
+[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](CONTRIBUTING.md)
+
+An AI-powered cryptocurrency trading bot with a modern React dashboard for automated multi-pair trading on Binance. Features real-time market scanning, GPT-4 trade analysis, paper trading mode, and comprehensive risk management.
+
+[Features](#features) • [Quick Start](QUICKSTART.md) • [Documentation](#documentation) • [Contributing](CONTRIBUTING.md)
+
+</div>
+
+---
 
 ---
 
@@ -287,14 +303,83 @@ All risk parameters (stop loss %, take profit %, max positions, etc.) are config
 
 This software is provided "as is" without warranty of any kind. The authors are not responsible for any financial losses incurred through the use of this bot. Cryptocurrency trading carries substantial risk. You are solely responsible for your trading decisions and outcomes.
 
-## License
+## Contributing
 
-MIT License - Use at your own risk
+We welcome contributions! Please see our [Contributing Guidelines](CONTRIBUTING.md) for details on:
+- How to report bugs
+- How to suggest enhancements
+- Development setup
+- Code style guidelines
+- Pull request process
+
+Please read our [Code of Conduct](CODE_OF_CONDUCT.md) before contributing.
+
+## Security
+
+Security is critical for a trading bot. Please review our [Security Policy](SECURITY.md) for:
+- How to report vulnerabilities
+- Security best practices
+- API key safety
+- Known security considerations
+
+**Never commit API keys or secrets to the repository!**
+
+## Documentation
+
+- **[Quick Start Guide](QUICKSTART.md)** - Step-by-step setup for beginners
+- **[Contributing Guide](CONTRIBUTING.md)** - How to contribute to the project
+- **[Security Policy](SECURITY.md)** - Security guidelines and reporting
+- **[Code of Conduct](CODE_OF_CONDUCT.md)** - Community standards
+- **[Changelog](CHANGELOG.md)** - Version history and changes
 
 ## Support
 
-For issues and feature requests, please create an issue in the repository.
+- **Issues**: Create a [GitHub Issue](../../issues) for bug reports or feature requests
+- **Discussions**: Join [GitHub Discussions](../../discussions) for questions and ideas
+- **Documentation**: Check the docs linked above for detailed guides
+
+## Roadmap
+
+Future planned features:
+- [ ] Multiple exchange support (Coinbase, Kraken, etc.)
+- [ ] Advanced charting with TradingView integration
+- [ ] Email/SMS notifications for trades
+- [ ] Strategy backtesting with historical data visualization
+- [ ] Mobile app (React Native)
+- [ ] Machine learning price prediction models
+- [ ] Telegram bot integration
+- [ ] Portfolio rebalancing strategies
+
+## Community
+
+- Star this repository if you find it useful
+- Watch for updates and new features
+- Fork to create your own version
+- Submit pull requests to contribute
+
+## License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+**DISCLAIMER:** This software is provided for educational purposes only. Trading cryptocurrency involves substantial risk of loss and is not suitable for every investor. The authors and contributors are not responsible for any financial losses incurred through the use of this software. Never invest more than you can afford to lose completely.
+
+## Acknowledgments
+
+- Built with [Python](https://www.python.org/), [React](https://reactjs.org/), and [Flask](https://flask.palletsprojects.com/)
+- Market data from [Binance API](https://binance-docs.github.io/apidocs/)
+- AI analysis powered by [OpenAI GPT-4](https://openai.com/)
+- Technical indicators from [TA-Lib](https://github.com/mrjbq7/ta-lib)
 
 ---
 
-**Remember: The goal is to learn and trade responsibly, not to get rich quick. Protect your capital first, profits second.**
+<div align="center">
+
+**Remember: The goal is to learn and trade responsibly, not to get rich quick.**
+
+**Protect your capital first, profits second.**
+
+Made with ❤️ by the open-source community
+
+[⬆ Back to Top](#crypto-trading-bot)
+
+</div>

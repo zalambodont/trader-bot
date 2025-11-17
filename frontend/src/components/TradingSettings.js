@@ -13,6 +13,10 @@ function TradingSettings({ isOpen, onClose, onStart, initialSettings }) {
   });
 
   const handleChange = (field, value) => {
+    // Prevent NaN values
+    if (typeof value === 'number' && isNaN(value)) {
+      return;
+    }
     setSettings(prev => ({
       ...prev,
       [field]: value
@@ -44,7 +48,7 @@ function TradingSettings({ isOpen, onClose, onStart, initialSettings }) {
               <input
                 type="number"
                 value={settings.totalCapital}
-                onChange={(e) => handleChange('totalCapital', parseFloat(e.target.value))}
+                onChange={(e) => handleChange('totalCapital', parseFloat(e.target.value) || 0)}
                 min="100"
                 step="100"
                 required
@@ -57,7 +61,7 @@ function TradingSettings({ isOpen, onClose, onStart, initialSettings }) {
               <input
                 type="number"
                 value={settings.maxPositions}
-                onChange={(e) => handleChange('maxPositions', parseInt(e.target.value))}
+                onChange={(e) => handleChange('maxPositions', parseInt(e.target.value) || 1)}
                 min="1"
                 max="20"
                 required
@@ -76,7 +80,7 @@ function TradingSettings({ isOpen, onClose, onStart, initialSettings }) {
               <input
                 type="number"
                 value={settings.stopLossPct}
-                onChange={(e) => handleChange('stopLossPct', parseFloat(e.target.value))}
+                onChange={(e) => handleChange('stopLossPct', parseFloat(e.target.value) || 0)}
                 min="0.5"
                 max="10"
                 step="0.5"
@@ -90,7 +94,7 @@ function TradingSettings({ isOpen, onClose, onStart, initialSettings }) {
               <input
                 type="number"
                 value={settings.takeProfitPct}
-                onChange={(e) => handleChange('takeProfitPct', parseFloat(e.target.value))}
+                onChange={(e) => handleChange('takeProfitPct', parseFloat(e.target.value) || 0)}
                 min="0.5"
                 max="20"
                 step="0.5"
@@ -108,7 +112,7 @@ function TradingSettings({ isOpen, onClose, onStart, initialSettings }) {
               <input
                 type="number"
                 value={settings.scanInterval}
-                onChange={(e) => handleChange('scanInterval', parseInt(e.target.value))}
+                onChange={(e) => handleChange('scanInterval', parseInt(e.target.value) || 30)}
                 min="30"
                 max="600"
                 step="30"
@@ -122,7 +126,7 @@ function TradingSettings({ isOpen, onClose, onStart, initialSettings }) {
               <input
                 type="number"
                 value={settings.minScore}
-                onChange={(e) => handleChange('minScore', parseInt(e.target.value))}
+                onChange={(e) => handleChange('minScore', parseInt(e.target.value) || 1)}
                 min="1"
                 max="100"
                 required

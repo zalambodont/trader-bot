@@ -176,9 +176,11 @@ cp .env.example .env
 BINANCE_API_KEY=
 BINANCE_API_SECRET=
 OPENAI_API_KEY=
+LOSS_COOLDOWN_MINUTES=30
 
-# Leave them BLANK - the bot works without them!
+# Leave API keys BLANK - the bot works without them for paper trading!
 # You'll configure trading mode (paper/live) in the dashboard when you start trading
+# LOSS_COOLDOWN_MINUTES prevents re-entry on losing trades (default: 30 minutes)
 ```
 
 **Option B: Add Your API Keys**
@@ -202,11 +204,15 @@ BINANCE_API_SECRET=YOUR_BINANCE_SECRET_KEY_HERE
 OPENAI_API_KEY=sk-proj-your-openai-key-here
 
 # =============================================================================
-# TRADING CONFIGURATION
+# ADVANCED TRADING CONFIGURATION (OPTIONAL)
 # =============================================================================
-# NOTE: All trading settings (capital, max positions, stop loss, take profit, etc.)
-# are now configured through the dashboard when you start trading.
-# You don't need to set them here anymore!
+# NOTE: Most trading settings (capital, max positions, stop loss, take profit, etc.)
+# are configured through the dashboard when you start trading.
+
+# Loss Cooldown (minutes) - Prevents re-entry on losing pairs for this duration
+# Default: 30 minutes. Set to 0 to disable cooldown.
+# Only applies to losses - profitable trades can re-enter immediately.
+LOSS_COOLDOWN_MINUTES=30
 ```
 
 **Important Notes:**

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import TradingSettings from './TradingSettings';
 import './PairSearch.css';
 
 const API_URL = 'http://localhost:5001';
@@ -10,10 +11,25 @@ function PairSearch({ selectedPairs, onPairSelect }) {
   const [showDropdown, setShowDropdown] = useState(false);
   const [searchedPairs, setSearchedPairs] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [showSettings, setShowSettings] = useState(false);
+  const [botRunning, setBotRunning] = useState(false);
 
   useEffect(() => {
     fetchAllPairs();
+    checkBotStatus();
+    // Check bot status periodically
+    const interval = setInterval(checkBotStatus, 10000);
+    return () => clearInterval(interval);
   }, []);
+
+  const checkBotStatus = async () => {
+    try {
+      const response = await axios.get(`${API_URL}/api/multi-bot/status`);
+      setBotRunning(response.data.running);
+    } catch (error) {
+      console.error('Failed to check bot status:', error);
+    }
+  };
 
   const fetchAllPairs = async () => {
     try {
@@ -98,6 +114,66 @@ function PairSearch({ selectedPairs, onPairSelect }) {
     return '#888';
   };
 
+  const startTradingSelected = () => {
+    if (selectedPairs.length === 0) {
+      alert('Please select at least one pair to trade');
+      return;
+    }
+    setShowSettings(true);
+  };
+
+  const handleStartTrading = async (settings) => {
+    try {
+      const response = await axios.post(`${API_URL}/api/multi-bot/start`, {
+        quote_currency: 'USDT',
+        min_volume: 500000,
+        max_pairs: 100,
+        initial_balance: settings.totalCapital,
+        max_positions: settings.maxPositions,
+        max_allocation: settings.totalCapital / settings.maxPositions / settings.totalCapital,
+        scan_interval: settings.scanInterval,
+        min_score: settings.minScore,
+        mode: settings.tradingMode,
+        timeframe: '15m',
+        stop_loss_pct: settings.stopLossPct / 100,
+        take_profit_pct: settings.takeProfitPct / 100,
+        selected_pairs: selectedPairs
+      });
+
+      if (response.data.success) {
+        setBotRunning(true);
+        setShowSettings(false);
+        alert(`Started trading ${selectedPairs.length} pairs with $${settings.totalCapital} total capital`);
+      }
+    } catch (error) {
+      console.error('Failed to start bot:', error);
+      alert('Failed to start trading: ' + error.message);
+    }
+  };
+
+  const stopTrading = async () => {
+    try {
+      await axios.post(`${API_URL}/api/multi-bot/stop`);
+      setBotRunning(false);
+      alert('Trading stopped');
+    } catch (error) {
+      console.error('Failed to stop bot:', error);
+      alert('Failed to stop trading');
+    }
+  };
+
+  const selectAllSearched = () => {
+    searchedPairs.forEach(pair => {
+      if (!selectedPairs.includes(pair.symbol)) {
+        onPairSelect(pair.symbol);
+      }
+    });
+  };
+
+  const clearSelection = () => {
+    selectedPairs.forEach(pair => onPairSelect(pair));
+  };
+
   return (
     <div className="pair-search">
       <div className="pair-search-header">
@@ -143,14 +219,38 @@ function PairSearch({ selectedPairs, onPairSelect }) {
 
       {searchedPairs.length > 0 && (
         <>
-          <div className="searched-pairs-header">
-            <h3>Analyzed Pairs ({searchedPairs.length})</h3>
-            <button
-              onClick={() => setSearchedPairs([])}
-              className="clear-all-btn"
-            >
-              Clear All
-            </button>
+          <div className="selection-controls">
+            <div className="selection-info">
+              <h3>Analyzed Pairs ({searchedPairs.length})</h3>
+              {selectedPairs.length > 0 && (
+                <span className="selected-count">
+                  {selectedPairs.length} pair{selectedPairs.length !== 1 ? 's' : ''} selected
+                </span>
+              )}
+            </div>
+            <div className="selection-buttons">
+              <button onClick={selectAllSearched} className="select-btn">Select All</button>
+              <button onClick={clearSelection} className="select-btn">Clear Selection</button>
+              <button
+                onClick={() => setSearchedPairs([])}
+                className="clear-all-btn"
+              >
+                Clear All Pairs
+              </button>
+              {botRunning ? (
+                <button onClick={stopTrading} className="stop-trading-btn">
+                  Stop Trading
+                </button>
+              ) : (
+                <button
+                  onClick={startTradingSelected}
+                  disabled={selectedPairs.length === 0}
+                  className="start-trading-btn"
+                >
+                  Configure & Trade ({selectedPairs.length})
+                </button>
+              )}
+            </div>
           </div>
 
           <div className="searched-pairs-grid">
@@ -246,6 +346,12 @@ function PairSearch({ selectedPairs, onPairSelect }) {
           <p className="hint">Try searching: BTC, ETH, DASH, ZEC, SOL, ADA...</p>
         </div>
       )}
+
+      <TradingSettings
+        isOpen={showSettings}
+        onClose={() => setShowSettings(false)}
+        onStart={handleStartTrading}
+      />
     </div>
   );
 }

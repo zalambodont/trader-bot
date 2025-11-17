@@ -55,7 +55,10 @@ The quickstart guide includes:
 - **Multi-Pair Trading** - Scan and trade multiple cryptocurrency pairs simultaneously
 - **Multiple Strategies** - RSI+MACD, Moving Average Crossover, Bollinger Bands
 - **Paper Trading Mode** - Practice with simulated money (no real funds required)
-- **Risk Management** - Automated stop loss, take profit, and position sizing
+- **Advanced Risk Management**
+  - Automated stop loss and take profit
+  - Position sizing based on portfolio allocation
+  - Loss cooldown system (prevents immediate re-entry on losing trades)
 - **Backtesting Engine** - Test strategies on historical data before going live
 
 ### Dashboard Features

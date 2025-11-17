@@ -120,19 +120,60 @@
   50% { opacity: 0.5; }
 }
 
-.searched-pairs-header {
+.selection-controls {
   display: flex;
   justify-content: space-between;
   align-items: center;
   margin-bottom: 20px;
-  padding-bottom: 10px;
-  border-bottom: 2px solid #333;
+  padding: 15px;
+  background: #2a2a2a;
+  border-radius: 8px;
+  border: 2px solid #333;
 }
 
-.searched-pairs-header h3 {
+.selection-info {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.selection-info h3 {
   margin: 0;
   color: #00ff88;
   font-size: 18px;
+}
+
+.selected-count {
+  padding: 6px 12px;
+  background: #00ff8820;
+  border: 1px solid #00ff88;
+  border-radius: 12px;
+  color: #00ff88;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.selection-buttons {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.select-btn {
+  padding: 8px 16px;
+  background: #667eea;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: all 0.2s;
+  font-weight: 500;
+}
+
+.select-btn:hover {
+  background: #7c8ff0;
+  transform: scale(1.05);
 }
 
 .clear-all-btn {
@@ -144,11 +185,56 @@
   cursor: pointer;
   font-size: 14px;
   transition: all 0.2s;
+  font-weight: 500;
 }
 
 .clear-all-btn:hover {
   background: #ff6666;
   transform: scale(1.05);
+}
+
+.start-trading-btn {
+  padding: 10px 20px;
+  background: linear-gradient(135deg, #00ff88 0%, #00cc6a 100%);
+  color: #000;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: bold;
+  transition: all 0.2s;
+  box-shadow: 0 2px 8px rgba(0, 255, 136, 0.3);
+}
+
+.start-trading-btn:hover:not(:disabled) {
+  transform: scale(1.05);
+  box-shadow: 0 4px 12px rgba(0, 255, 136, 0.5);
+}
+
+.start-trading-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  background: #333;
+  color: #666;
+  box-shadow: none;
+}
+
+.stop-trading-btn {
+  padding: 10px 20px;
+  background: linear-gradient(135deg, #ff4444 0%, #cc3333 100%);
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: bold;
+  transition: all 0.2s;
+  box-shadow: 0 2px 8px rgba(255, 68, 68, 0.3);
+}
+
+.stop-trading-btn:hover {
+  transform: scale(1.05);
+  box-shadow: 0 4px 12px rgba(255, 68, 68, 0.5);
 }
 
 .searched-pairs-grid {

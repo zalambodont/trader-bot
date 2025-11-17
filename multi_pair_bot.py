@@ -58,6 +58,10 @@ class MultiPairBot:
         self.last_scan_time = 0
         self.scan_count = 0
 
+        # Loss cooldown system - prevents immediate re-entry on losing trades
+        self.loss_cooldown = {}  # {symbol: timestamp}
+        self.cooldown_duration = config.get('LOSS_COOLDOWN_MINUTES', 30) * 60  # Convert to seconds
+
     def scan_for_opportunities(self):
         """Scan market for new opportunities"""
         print("\n" + "="*80)
@@ -109,6 +113,20 @@ class MultiPairBot:
         # Check portfolio capacity
         if not self.portfolio.can_open_position(symbol):
             return False
+
+        # Check loss cooldown (only for non-manual pairs)
+        if symbol in self.loss_cooldown:
+            time_since_loss = time.time() - self.loss_cooldown[symbol]
+            if time_since_loss < self.cooldown_duration:
+                remaining_min = (self.cooldown_duration - time_since_loss) / 60
+                print(f"   ⏳ {symbol} in cooldown for {remaining_min:.1f} more minutes (previous loss)")
+                logger.info(f"{symbol} skipped - in cooldown for {remaining_min:.1f} more minutes")
+                return False
+            else:
+                # Cooldown expired, remove from dict
+                del self.loss_cooldown[symbol]
+                print(f"   ✅ {symbol} cooldown expired, can trade again")
+                logger.info(f"{symbol} cooldown expired")
 
         # FORCE TRADE if this is a manually selected pair
         if self.selected_pairs and symbol in self.selected_pairs:
@@ -309,14 +327,23 @@ class MultiPairBot:
 
         # Close positions that hit stop/target
         for close_info in positions_to_close:
-            print(f"\n🚪 CLOSING POSITION: {close_info['symbol']}")
+            symbol = close_info['symbol']
+            print(f"\n🚪 CLOSING POSITION: {symbol}")
             print(f"   Reason: {close_info['reason']}")
             print(f"   Exit Price: ${close_info['price']:.2f}")
-            self.portfolio.close_position(
-                symbol=close_info['symbol'],
+
+            closed_position = self.portfolio.close_position(
+                symbol=symbol,
                 exit_price=close_info['price'],
                 reason=close_info['reason']
             )
+
+            # Add to cooldown if it was a loss
+            if closed_position and closed_position.get('pnl', 0) < 0:
+                self.loss_cooldown[symbol] = time.time()
+                cooldown_min = self.cooldown_duration / 60
+                print(f"   ⏳ {symbol} added to cooldown for {cooldown_min:.0f} minutes (loss detected)")
+                logger.info(f"{symbol} added to cooldown for {cooldown_min:.0f} minutes due to loss")
 
     def run_cycle(self):
         """Run one complete bot cycle"""

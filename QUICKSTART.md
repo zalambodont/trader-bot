@@ -2,6 +2,16 @@
 
 Get your AI-powered crypto trading bot running in under 30 minutes, even if you've never coded before!
 
+## ✨ Key Features
+
+- **🔍 Search & Analyze** - Search any crypto pair and get instant technical + AI analysis
+- **🤖 AI Recommendations** - GPT-4 analyzes every pair with decision, confidence, and risk assessment
+- **🎯 Individual Trading** - Trade specific pairs independently with "Trade This Pair" buttons
+- **📊 Market Scanner** - Auto-scan all USDT pairs and find top opportunities
+- **🛑 Emergency Stop** - Stop all trading instantly with one click
+- **📈 Real-time Monitoring** - Live P&L, charts, and 24-hour trade history
+- **💰 Paper Trading** - Practice with simulated money (no API keys needed!)
+
 ## Table of Contents
 1. [Prerequisites](#prerequisites)
 2. [Getting API Keys](#getting-api-keys)
@@ -290,16 +300,28 @@ python multi_pair_bot.py
 1. Set your minimum score (default: 65)
 2. Click "Scan Market" to find opportunities
 3. Bot analyzes all USDT pairs on Binance
-4. Green scores (80+) are strongest opportunities
+4. Each opportunity shows:
+   - Technical score (green 80+ = strongest)
+   - **🤖 AI Analysis** automatically included
+   - AI can auto-select pairs it recommends trading
+5. Select pairs and click "Configure & Trade"
 
-### 2. Manual Pair Selection
+### 2. Manual Pair Selection & Analysis
 
 **Want to trade specific coins like DASH or ZEC?**
 
-1. Use the search box at the top
+1. Use the search box in the "Search & Analyze Pairs" section
 2. Type "DASH" and select from dropdown
-3. Selected pairs show as blue chips
-4. Click "Configure & Trade" when ready
+3. Each searched pair shows:
+   - Technical analysis (price, RSI, volume, volatility, signals, score)
+   - **🤖 AI Analysis** (decision, confidence, risk assessment, reasoning)
+   - Technical score and direction recommendation
+4. **Two ways to trade:**
+   - **Individual Trading**: Click "Trade This Pair" button on any specific pair
+   - **Batch Trading**: Select multiple pairs (checkbox) and click "Configure & Trade"
+
+**📊 AI Analysis is Informative:**
+The AI analysis shown for manually searched pairs is for informational purposes only. You can still trade pairs even if the AI suggests "SKIP" - you're in control!
 
 **⚠️ If search doesn't work:**
 - Hard refresh your browser: `Ctrl+Shift+R` (Windows) or `Cmd+Shift+R` (Mac)
@@ -379,10 +401,14 @@ The backend terminal shows detailed logs with emojis:
 
 ### 6. Stop Trading
 
-Click "Close All & Take Profit" to:
+**🛑 Emergency Stop Button:**
+
+When trading is active, you'll see a red "Stop Trading" button in the Active Positions section header. Click it to:
+- Immediately stop all trading activity
 - Close all open positions
 - Realize your P&L
-- Stop the bot
+
+**Confirmation:** The system will ask for confirmation before stopping to prevent accidental clicks.
 
 ---
 

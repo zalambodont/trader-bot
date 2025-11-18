@@ -63,7 +63,10 @@ The quickstart guide includes:
 
 ### Dashboard Features
 - **Pair Search & Analysis** - Search any pair and view technical analysis with live data
+- **AI Analysis for Manual Searches** - Get GPT-4 recommendations for manually searched pairs (informative only)
+- **Individual Pair Trading** - Trade specific pairs independently with dedicated "Trade This Pair" buttons
 - **Market Scanner** - Automatically find top trading opportunities
+- **Stop Trading Controls** - Emergency stop button to halt all active trading and close positions
 - **Real-time Charts** - Live price charts with technical indicators
 - **Portfolio Tracking** - Monitor positions, P&L, and performance in real-time
 - **24-Hour Trade History** - View closed positions from the last 24 hours with detailed metrics
@@ -187,9 +190,34 @@ python run_backtest.py
 
 1. No API keys required - works out of the box!
 2. Start the bot using one of the methods above
-3. Select "Paper" mode in the dashboard when you click "Configure & Trade"
-4. Monitor performance and adjust settings through the dashboard
-5. Only consider live trading after consistent paper trading success
+3. Use the dashboard to find trading opportunities:
+   - **Search Pairs** - Manually search and analyze specific pairs like BTC, ETH, DASH
+   - **Market Scanner** - Auto-scan all USDT pairs for opportunities
+4. Select your trading approach:
+   - **Individual Trading** - Click "Trade This Pair" on any analyzed pair
+   - **Batch Trading** - Select multiple pairs and click "Configure & Trade"
+5. Select "Paper" mode in the trading configuration modal
+6. Monitor active positions and use the "Stop Trading" button if needed
+7. Only consider live trading after consistent paper trading success
+
+### Using the Dashboard
+
+#### 1. Search & Analyze Individual Pairs
+- Type a symbol (e.g., "BTC", "DASH", "ZEC") in the search box
+- View technical analysis: price, RSI, volume, volatility, signals
+- See AI recommendations (decision, confidence, risk level, reasoning)
+- Click "Trade This Pair" to start trading just that pair
+
+#### 2. Scan the Market
+- Set minimum score threshold (default: 65)
+- Click "Scan Market" to find opportunities
+- AI automatically analyzes each opportunity
+- Select pairs you want to trade and click "Configure & Trade"
+
+#### 3. Monitor & Control
+- View all active positions with real-time P&L
+- See 24-hour trade history with exit reasons
+- Click "Stop Trading" button to emergency halt all trading
 
 ### Live Trading (High Risk!)
 
@@ -243,12 +271,27 @@ The bot includes built-in risk controls:
 
 ## Dashboard Features
 
-- **Real-time price charts** with technical indicators
-- **Portfolio statistics** and performance metrics
-- **Open positions** with current P&L
-- **Trade history** with detailed results
-- **Bot controls** (start/stop/backtest)
-- **Live updates** via WebSocket
+### Trading Controls
+- **Stop Trading Button** - Emergency stop to halt all active trading and close positions
+- **Individual Pair Trading** - Trade specific pairs independently without batch selection
+- **Configure & Trade** - Batch trading for multiple selected pairs
+
+### Market Analysis
+- **Pair Search & Analysis** - Search any cryptocurrency pair and get instant technical analysis
+- **AI Recommendations** - GPT-4 analyzes manually searched pairs (decision, confidence, risk assessment)
+- **Market Scanner** - Automatically scan for top trading opportunities across all USDT pairs
+- **Real-time Charts** - Live price charts with technical indicators
+
+### Portfolio Management
+- **Active Positions** - Monitor open positions with current P&L and mini price charts
+- **24-Hour Trade History** - Detailed view of closed positions with exit reasons and P&L
+- **Portfolio Statistics** - Total value, unrealized P&L, win rate, average win/loss
+- **Performance Metrics** - Track trading performance in real-time
+
+### User Experience
+- **Clean Single-Scrollbar UX** - Optimized interface with one main scrollbar
+- **Live Updates** - WebSocket integration for instant data without page refresh
+- **Collapsible Sections** - Organize your workspace efficiently
 
 ## API Endpoints
 

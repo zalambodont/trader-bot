@@ -539,6 +539,46 @@ def stop_multi_bot():
         return jsonify({'error': str(e)}), 500
 
 
+@app.route('/api/multi-bot/close-position', methods=['POST'])
+def close_position():
+    """Close an individual position"""
+    try:
+        if not multi_pair_state['bot']:
+            return jsonify({'error': 'Bot not running'}), 400
+
+        data = request.get_json()
+        symbol = data.get('symbol')
+
+        if not symbol:
+            return jsonify({'error': 'Symbol is required'}), 400
+
+        # Get current price for the symbol
+        portfolio = multi_pair_state['bot'].portfolio
+        if symbol not in portfolio.positions:
+            return jsonify({'error': f'No open position for {symbol}'}), 404
+
+        # Get current price from binance client
+        try:
+            current_price = multi_pair_state['bot'].binance_client.get_current_price(symbol)
+        except Exception as e:
+            return jsonify({'error': f'Failed to get current price: {str(e)}'}), 500
+
+        # Close the position
+        trade = portfolio.close_position(symbol, current_price, reason='MANUAL_CLOSE')
+
+        if trade:
+            return jsonify({
+                'success': True,
+                'message': f'Position closed for {symbol}',
+                'trade': trade
+            })
+        else:
+            return jsonify({'error': f'Failed to close position for {symbol}'}), 500
+
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+
 @app.route('/api/multi-bot/status', methods=['GET'])
 def get_multi_bot_status():
     """Get multi-pair bot status"""

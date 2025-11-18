@@ -94,6 +94,26 @@ function ActivePositions() {
     }
   };
 
+  const handleClosePosition = async (symbol) => {
+    if (!window.confirm(`Are you sure you want to close the position for ${symbol}?`)) {
+      return;
+    }
+
+    try {
+      const response = await axios.post(`${API_URL}/api/multi-bot/close-position`, {
+        symbol: symbol
+      });
+
+      if (response.data.success) {
+        alert(`Position closed for ${symbol}`);
+        fetchPositions(); // Refresh positions
+      }
+    } catch (error) {
+      console.error(`Failed to close position for ${symbol}:`, error);
+      alert(`Failed to close position for ${symbol}. ${error.response?.data?.error || error.message}`);
+    }
+  };
+
   const getPnLColor = (pnl) => {
     if (pnl > 0) return '#00ff00';
     if (pnl < 0) return '#ff4444';
@@ -151,6 +171,13 @@ function ActivePositions() {
         <div className="positions-grid">
           {positions.map((pos, index) => (
             <div key={index} className="position-card">
+              <button
+                className="close-position-btn"
+                onClick={() => handleClosePosition(pos.symbol)}
+                title="Close this position"
+              >
+                ×
+              </button>
               <div className="position-header">
                 <div>
                   <span className="position-symbol">{pos.symbol}</span>

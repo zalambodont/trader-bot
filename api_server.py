@@ -394,10 +394,23 @@ def analyze_pair():
                 max_pairs=100
             )
 
+        # Initialize AI advisor if needed
+        if not multi_pair_state['ai_advisor']:
+            multi_pair_state['ai_advisor'] = AITradingAdvisor()
+
         # Analyze the pair
         opportunity = multi_pair_state['scanner'].analyze_pair(symbol, timeframe)
 
         if opportunity:
+            # Add AI analysis to the opportunity
+            try:
+                ai_analysis = multi_pair_state['ai_advisor'].analyze_opportunity(opportunity)
+                opportunity['ai_analysis'] = ai_analysis
+                print(f"✅ AI analysis added for manually searched pair: {symbol}")
+            except Exception as e:
+                print(f"⚠️ AI analysis failed for {symbol}: {e}")
+                # Continue without AI analysis
+
             return jsonify({
                 'success': True,
                 'opportunity': opportunity

@@ -85,12 +85,24 @@ Be specific about technical patterns, market conditions, and potential risks."""
             return self._parse_ai_response(ai_response, opportunity)
 
         except Exception as e:
-            logger.error(f"AI analysis failed: {e}")
+            error_msg = str(e)
+            logger.error(f"AI analysis failed: {error_msg}")
+
+            # Provide more specific error messages
+            if "API key" in error_msg.lower() or "authentication" in error_msg.lower():
+                reasoning = f"Error: Invalid or missing OpenAI API key. Technical score: {opportunity['score']}/100"
+            elif "quota" in error_msg.lower() or "rate limit" in error_msg.lower():
+                reasoning = f"Error: OpenAI API quota exceeded or rate limited. Technical score: {opportunity['score']}/100"
+            elif "timeout" in error_msg.lower():
+                reasoning = f"Error: OpenAI API timeout. Technical score: {opportunity['score']}/100"
+            else:
+                reasoning = f"Error: AI analysis failed ({error_msg[:50]}...). Technical score: {opportunity['score']}/100"
+
             # Fallback to technical score
             return {
                 'should_trade': opportunity['score'] >= 70,
                 'confidence': opportunity['score'] / 100,
-                'reasoning': f'AI analysis failed, using technical score: {opportunity["score"]}/100',
+                'reasoning': reasoning,
                 'risk_assessment': 'medium'
             }
 
@@ -120,13 +132,24 @@ Signals Detected:
     def _parse_ai_response(self, response_text, opportunity):
         """Parse AI response into structured format"""
 
+        if not response_text or not response_text.strip():
+            return {
+                'should_trade': False,
+                'confidence': opportunity['score'] / 100,
+                'reasoning': 'Error: AI returned empty response',
+                'risk_assessment': 'medium'
+            }
+
         lines = response_text.strip().split('\n')
         result = {
             'should_trade': False,
             'confidence': opportunity['score'] / 100,
-            'reasoning': response_text,
+            'reasoning': '',  # Will be filled in below
             'risk_assessment': 'medium'
         }
+
+        reasoning_found = False
+        full_response = response_text  # Keep original for fallback
 
         for line in lines:
             line = line.strip()
@@ -139,15 +162,29 @@ Signals Detected:
                     # Extract number from "CONFIDENCE: 75%"
                     conf_str = line.split(':')[1].strip().replace('%', '')
                     result['confidence'] = float(conf_str) / 100
-                except:
-                    pass
+                except Exception as e:
+                    logger.warning(f"Failed to parse confidence: {e}")
 
             elif line.startswith('RISK:'):
-                risk = line.split(':')[1].strip().lower()
-                result['risk_assessment'] = risk
+                try:
+                    risk = line.split(':')[1].strip().lower()
+                    result['risk_assessment'] = risk
+                except Exception as e:
+                    logger.warning(f"Failed to parse risk: {e}")
 
             elif line.startswith('REASONING:'):
-                result['reasoning'] = line.split(':', 1)[1].strip()
+                try:
+                    result['reasoning'] = line.split(':', 1)[1].strip()
+                    reasoning_found = True
+                except Exception as e:
+                    logger.warning(f"Failed to parse reasoning: {e}")
+
+        # If no reasoning was found in expected format, use full response or show error
+        if not reasoning_found or not result['reasoning']:
+            if len(full_response) > 0:
+                result['reasoning'] = f"AI response (unparsed format): {full_response}"
+            else:
+                result['reasoning'] = "Error: AI provided no reasoning"
 
         return result
 

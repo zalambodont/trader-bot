@@ -316,8 +316,14 @@ def trigger_scan():
             try:
                 ai_analysis = multi_pair_state['ai_advisor'].analyze_opportunity(opp)
                 opp['ai_analysis'] = ai_analysis
+                # Log if reasoning is missing or is an error
+                if 'reasoning' in ai_analysis:
+                    if ai_analysis['reasoning'].startswith('Error:'):
+                        print(f"⚠️  AI Error for {opp['symbol']}: {ai_analysis['reasoning']}")
+                    elif not ai_analysis['reasoning'] or len(ai_analysis['reasoning']) < 10:
+                        print(f"⚠️  AI returned short/empty reasoning for {opp['symbol']}")
             except Exception as e:
-                print(f"AI analysis failed for {opp['symbol']}: {e}")
+                print(f"❌ AI analysis exception for {opp['symbol']}: {e}")
                 # Continue without AI analysis for this opportunity
 
         return jsonify({
@@ -345,8 +351,12 @@ def get_opportunities():
                 try:
                     ai_analysis = multi_pair_state['ai_advisor'].analyze_opportunity(opp)
                     opp['ai_analysis'] = ai_analysis
+                    # Log if reasoning is missing or is an error
+                    if 'reasoning' in ai_analysis:
+                        if ai_analysis['reasoning'].startswith('Error:'):
+                            print(f"⚠️  AI Error for {opp['symbol']}: {ai_analysis['reasoning']}")
                 except Exception as e:
-                    print(f"AI analysis failed for {opp['symbol']}: {e}")
+                    print(f"❌ AI analysis exception for {opp['symbol']}: {e}")
                     # Continue without AI analysis for this opportunity
 
     return jsonify({
@@ -406,9 +416,17 @@ def analyze_pair():
             try:
                 ai_analysis = multi_pair_state['ai_advisor'].analyze_opportunity(opportunity)
                 opportunity['ai_analysis'] = ai_analysis
-                print(f"✅ AI analysis added for manually searched pair: {symbol}")
+
+                # Log AI analysis status
+                if 'reasoning' in ai_analysis:
+                    if ai_analysis['reasoning'].startswith('Error:'):
+                        print(f"⚠️  AI Error for {symbol}: {ai_analysis['reasoning']}")
+                    elif not ai_analysis['reasoning'] or len(ai_analysis['reasoning']) < 10:
+                        print(f"⚠️  AI returned short/empty reasoning for {symbol}")
+                    else:
+                        print(f"✅ AI analysis added for {symbol}")
             except Exception as e:
-                print(f"⚠️ AI analysis failed for {symbol}: {e}")
+                print(f"❌ AI analysis exception for {symbol}: {e}")
                 # Continue without AI analysis
 
             return jsonify({

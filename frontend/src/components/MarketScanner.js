@@ -14,6 +14,7 @@ function MarketScanner({ selectedPairs, onPairSelect }) {
   const [botRunning, setBotRunning] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
   const [isScannerCollapsed, setIsScannerCollapsed] = useState(false);
+  const [singlePairToTrade, setSinglePairToTrade] = useState(null);
 
   const scanMarket = async () => {
     setScanning(true);
@@ -139,11 +140,20 @@ function MarketScanner({ selectedPairs, onPairSelect }) {
       alert('Please select at least one pair to trade');
       return;
     }
+    setSinglePairToTrade(null);
+    setShowSettings(true);
+  };
+
+  const startTradingSinglePair = (pairSymbol) => {
+    setSinglePairToTrade(pairSymbol);
     setShowSettings(true);
   };
 
   const handleStartTrading = async (settings) => {
     try {
+      // Determine which pairs to trade
+      const pairsToTrade = singlePairToTrade ? [singlePairToTrade] : selectedPairs;
+
       const response = await axios.post(`${API_URL}/api/multi-bot/start`, {
         quote_currency: 'USDT',
         min_volume: 500000,
@@ -157,12 +167,14 @@ function MarketScanner({ selectedPairs, onPairSelect }) {
         timeframe: '15m',
         stop_loss_pct: settings.stopLossPct / 100,
         take_profit_pct: settings.takeProfitPct / 100,
-        selected_pairs: selectedPairs
+        selected_pairs: pairsToTrade
       });
 
       if (response.data.success) {
         setBotRunning(true);
-        alert(`Started trading ${selectedPairs.length} pairs with $${settings.totalCapital} total capital`);
+        setShowSettings(false);
+        setSinglePairToTrade(null);
+        alert(`Started trading ${pairsToTrade.length} pair${pairsToTrade.length !== 1 ? 's' : ''} with $${settings.totalCapital} total capital`);
       }
     } catch (error) {
       console.error('Failed to start bot:', error);
@@ -384,6 +396,21 @@ function MarketScanner({ selectedPairs, onPairSelect }) {
                     <div className="ai-reasoning-text">{opp.ai_analysis.reasoning}</div>
                   </div>
                 </div>
+              )}
+
+              <button
+                className="trade-single-pair-btn"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  startTradingSinglePair(opp.symbol);
+                }}
+                disabled={botRunning}
+              >
+                {botRunning ? 'Trading Active' : 'Trade This Pair'}
+              </button>
+
+              {isSelected && (
+                <div className="selected-badge">✓ Selected for Trading</div>
               )}
             </div>
           );

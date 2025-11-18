@@ -512,3 +512,48 @@
     grid-template-columns: 1fr;
   }
 }
+
+/* Individual Pair Trading Button */
+.trade-single-pair-btn {
+  width: 100%;
+  margin-top: 15px;
+  padding: 10px 15px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 600;
+  transition: all 0.3s;
+  box-shadow: 0 3px 10px rgba(102, 126, 234, 0.3);
+}
+
+.trade-single-pair-btn:hover:not(:disabled) {
+  background: linear-gradient(135deg, #7c8ff0 0%, #8b5fc4 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+}
+
+.trade-single-pair-btn:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.trade-single-pair-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  background: #444;
+  box-shadow: none;
+}
+
+.selected-badge {
+  margin-top: 15px;
+  padding: 10px;
+  background: rgba(0, 255, 0, 0.1);
+  border: 1px solid #00ff00;
+  border-radius: 5px;
+  text-align: center;
+  color: #00ff00;
+  font-weight: bold;
+  font-size: 14px;
+}

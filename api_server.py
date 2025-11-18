@@ -15,6 +15,7 @@ from backtester import Backtester
 from config import Config
 from market_scanner import MarketScanner
 from multi_pair_bot import MultiPairBot
+from ai_advisor import AITradingAdvisor
 
 app = Flask(__name__)
 CORS(app)
@@ -42,7 +43,8 @@ multi_pair_state = {
     'running': False,
     'thread': None,
     'scanner': None,
-    'mode': 'single'  # 'single' or 'multi'
+    'mode': 'single',  # 'single' or 'multi'
+    'ai_advisor': None
 }
 
 
@@ -292,7 +294,7 @@ def get_trades():
 
 @app.route('/api/scanner/scan', methods=['POST'])
 def trigger_scan():
-    """Trigger a market scan"""
+    """Trigger a market scan with AI analysis"""
     try:
         data = request.json or {}
         min_score = data.get('min_score', 60)
@@ -304,7 +306,19 @@ def trigger_scan():
                 max_pairs=100
             )
 
+        if not multi_pair_state['ai_advisor']:
+            multi_pair_state['ai_advisor'] = AITradingAdvisor()
+
         opportunities = multi_pair_state['scanner'].scan_market(min_score=min_score)
+
+        # Add AI analysis to each opportunity
+        for opp in opportunities:
+            try:
+                ai_analysis = multi_pair_state['ai_advisor'].analyze_opportunity(opp)
+                opp['ai_analysis'] = ai_analysis
+            except Exception as e:
+                print(f"AI analysis failed for {opp['symbol']}: {e}")
+                # Continue without AI analysis for this opportunity
 
         return jsonify({
             'success': True,
@@ -317,12 +331,23 @@ def trigger_scan():
 
 @app.route('/api/scanner/opportunities', methods=['GET'])
 def get_opportunities():
-    """Get current opportunities from scanner"""
+    """Get current opportunities from scanner with AI analysis"""
     if not multi_pair_state['scanner']:
         return jsonify({'opportunities': [], 'count': 0})
 
     limit = request.args.get('limit', 20, type=int)
     opportunities = multi_pair_state['scanner'].get_top_opportunities(limit)
+
+    # Add AI analysis if not already present and AI advisor is available
+    if multi_pair_state['ai_advisor']:
+        for opp in opportunities:
+            if 'ai_analysis' not in opp or not opp['ai_analysis']:
+                try:
+                    ai_analysis = multi_pair_state['ai_advisor'].analyze_opportunity(opp)
+                    opp['ai_analysis'] = ai_analysis
+                except Exception as e:
+                    print(f"AI analysis failed for {opp['symbol']}: {e}")
+                    # Continue without AI analysis for this opportunity
 
     return jsonify({
         'opportunities': opportunities,

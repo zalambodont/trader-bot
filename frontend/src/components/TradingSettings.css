@@ -102,6 +102,15 @@
   box-shadow: 0 0 10px rgba(102, 126, 234, 0.3);
 }
 
+.form-group input.readonly-field,
+.form-group input[disabled] {
+  background: #0a0e27;
+  border-color: #667eea;
+  color: #667eea;
+  cursor: not-allowed;
+  opacity: 0.8;
+}
+
 .help-text {
   display: block;
   color: #888;

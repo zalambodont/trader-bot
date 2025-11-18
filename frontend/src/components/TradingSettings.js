@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
 import './TradingSettings.css';
 
-function TradingSettings({ isOpen, onClose, onStart, initialSettings }) {
+function TradingSettings({ isOpen, onClose, onStart, initialSettings, selectedPairsCount = 5 }) {
   const [settings, setSettings] = useState({
     totalCapital: initialSettings?.totalCapital || 10000,
-    maxPositions: initialSettings?.maxPositions || 5,
+    maxPositions: selectedPairsCount, // Automatically set to match selected pairs
     stopLossPct: initialSettings?.stopLossPct || 2,
     takeProfitPct: initialSettings?.takeProfitPct || 4,
     scanInterval: initialSettings?.scanInterval || 60,
@@ -25,7 +25,11 @@ function TradingSettings({ isOpen, onClose, onStart, initialSettings }) {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    onStart(settings);
+    // Override maxPositions with selectedPairsCount
+    onStart({
+      ...settings,
+      maxPositions: selectedPairsCount
+    });
     onClose();
   };
 
@@ -60,21 +64,31 @@ function TradingSettings({ isOpen, onClose, onStart, initialSettings }) {
               <label>Max Simultaneous Positions</label>
               <input
                 type="number"
-                value={settings.maxPositions}
-                onChange={(e) => handleChange('maxPositions', parseInt(e.target.value) || 1)}
-                min="1"
-                max="20"
-                required
+                value={selectedPairsCount}
+                readOnly
+                disabled
+                className="readonly-field"
               />
               <span className="help-text">
-                Capital per position: ${(settings.totalCapital / settings.maxPositions).toFixed(2)}
+                Auto-set to match selected pairs ({selectedPairsCount}). Capital per position: ${(settings.totalCapital / selectedPairsCount).toFixed(2)}
               </span>
             </div>
           </div>
 
           <div className="settings-section">
             <h3>Risk Management</h3>
-
+            <div className="form-group">
+              <label>Minimum Opportunity Score</label>
+              <input
+                type="number"
+                value={settings.minScore}
+                onChange={(e) => handleChange('minScore', parseInt(e.target.value) || 1)}
+                min="1"
+                max="100"
+                required
+              />
+              <span className="help-text">Only trade opportunities above this score</span>
+            </div>
             <div className="form-group">
               <label>Stop Loss (%)</label>
               <input
@@ -101,37 +115,6 @@ function TradingSettings({ isOpen, onClose, onStart, initialSettings }) {
                 required
               />
               <span className="help-text">Exit position if price rises by this %</span>
-            </div>
-          </div>
-
-          <div className="settings-section">
-            <h3>Scanning Settings</h3>
-
-            <div className="form-group">
-              <label>Scan Interval (seconds)</label>
-              <input
-                type="number"
-                value={settings.scanInterval}
-                onChange={(e) => handleChange('scanInterval', parseInt(e.target.value) || 30)}
-                min="30"
-                max="600"
-                step="30"
-                required
-              />
-              <span className="help-text">How often to check for new opportunities</span>
-            </div>
-
-            <div className="form-group">
-              <label>Minimum Opportunity Score</label>
-              <input
-                type="number"
-                value={settings.minScore}
-                onChange={(e) => handleChange('minScore', parseInt(e.target.value) || 1)}
-                min="1"
-                max="100"
-                required
-              />
-              <span className="help-text">Only trade opportunities above this score</span>
             </div>
           </div>
 

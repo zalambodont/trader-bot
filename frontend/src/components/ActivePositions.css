@@ -159,6 +159,50 @@
   font-weight: bold;
 }
 
+/* AI Analysis in Position Cards */
+.position-ai-analysis {
+  margin-top: 12px;
+  padding: 10px;
+  background: rgba(0, 0, 0, 0.5);
+  border-radius: 6px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.position-ai-analysis .ai-header {
+  font-size: 0.75em;
+  font-weight: bold;
+  color: #00ff00;
+  margin-bottom: 6px;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.ai-metrics-compact {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.ai-metric-compact {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+}
+
+.ai-metric-compact .ai-label {
+  font-size: 0.65em;
+  color: #888;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.ai-metric-compact .ai-value {
+  font-size: 0.75em;
+  font-weight: bold;
+  text-shadow: 0 0 5px currentColor;
+}
+
 .trading-stats {
   margin-top: 20px;
   padding: 15px;

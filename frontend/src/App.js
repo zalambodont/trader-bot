@@ -4,7 +4,7 @@ import './App.css';
 import PairSearch from './components/PairSearch';
 import MarketScanner from './components/MarketScanner';
 import ActivePositions from './components/ActivePositions';
-import { createLoggedAxios } from './apiLogger';
+import { createLoggedAxios, setLoggingEnabled, isLoggingEnabled } from './apiLogger';
 
 // Setup comprehensive API logging
 createLoggedAxios(axios);
@@ -21,6 +21,9 @@ console.log('✅ Error Logging: ENABLED');
 console.log('📡 API URL:', API_URL);
 console.log('---');
 
+// Global AI analyses storage for the panel
+window.aiAnalyses = [];
+
 function App() {
   const [selectedPairs, setSelectedPairs] = useState([]);
   const [portfolioStats, setPortfolioStats] = useState({
@@ -31,6 +34,7 @@ function App() {
     running: false,
     mode: 'paper'
   });
+  const [loggingEnabled, setLoggingEnabledState] = useState(false);
 
   useEffect(() => {
     fetchPortfolioStats();
@@ -63,6 +67,12 @@ function App() {
     }
     // Mode will be set when starting trading in TradingSettings
     alert('Mode will be set when you start trading. Use the trading settings to choose Paper or Live mode.');
+  };
+
+  const toggleLogging = () => {
+    const newState = !loggingEnabled;
+    setLoggingEnabledState(newState);
+    setLoggingEnabled(newState);
   };
 
   const closeAllPositions = async () => {
@@ -121,6 +131,13 @@ function App() {
           >
             {portfolioStats.mode.toUpperCase()} MODE
           </span>
+          <button
+            className={`logger-toggle ${loggingEnabled ? 'enabled' : 'disabled'}`}
+            onClick={toggleLogging}
+            title={`Click to ${loggingEnabled ? 'disable' : 'enable'} console logging`}
+          >
+            {loggingEnabled ? '📝 Console Logging ON' : '🔇 Console Logging OFF'}
+          </button>
         </div>
 
         {portfolioStats.running && (

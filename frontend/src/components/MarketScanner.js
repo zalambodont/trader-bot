@@ -28,12 +28,19 @@ function MarketScanner({ selectedPairs, onPairSelect }) {
         console.log(`%c📊 MARKET SCAN COMPLETE`, 'color: #ffaa00; font-weight: bold; font-size: 14px;');
         console.log(`Found ${opportunities.length} opportunities with min score ${minScore}`);
 
-        // Log AI analysis for each opportunity
+        // Log AI analysis for each opportunity and auto-select if AI recommends trading
         let aiCount = 0;
+        let autoSelectedCount = 0;
         opportunities.forEach(opp => {
           if (opp.ai_analysis) {
             aiCount++;
             logAIAnalysis(opp.ai_analysis, `Market Scanner - ${opp.symbol}`);
+
+            // Auto-select pairs where AI recommends trading
+            if (opp.ai_analysis.should_trade && !selectedPairs.includes(opp.symbol)) {
+              onPairSelect(opp.symbol);
+              autoSelectedCount++;
+            }
           }
         });
 
@@ -45,6 +52,10 @@ function MarketScanner({ selectedPairs, onPairSelect }) {
         } else {
           console.log(`%c✅ AI Analysis received for ${aiCount}/${opportunities.length} opportunities`,
             'color: #00ff00; font-weight: bold;');
+          if (autoSelectedCount > 0) {
+            console.log(`%c🤖 Auto-selected ${autoSelectedCount} pairs based on AI recommendation`,
+              'color: #00ff00; font-weight: bold;');
+          }
         }
 
         setOpportunities(opportunities);
@@ -62,12 +73,24 @@ function MarketScanner({ selectedPairs, onPairSelect }) {
       const response = await axios.get(`${API_URL}/api/scanner/opportunities?limit=20`);
       const opportunities = response.data.opportunities || [];
 
-      // Log AI analysis if present
+      // Log AI analysis if present and auto-select if AI recommends trading
+      let autoSelectedCount = 0;
       opportunities.forEach(opp => {
         if (opp.ai_analysis) {
           logAIAnalysis(opp.ai_analysis, `Auto-refresh - ${opp.symbol}`);
+
+          // Auto-select pairs where AI recommends trading (only on first discovery)
+          if (opp.ai_analysis.should_trade && !selectedPairs.includes(opp.symbol)) {
+            onPairSelect(opp.symbol);
+            autoSelectedCount++;
+          }
         }
       });
+
+      if (autoSelectedCount > 0) {
+        console.log(`%c🤖 Auto-selected ${autoSelectedCount} new pairs based on AI recommendation`,
+          'color: #00ff00; font-weight: bold;');
+      }
 
       setOpportunities(opportunities);
     } catch (error) {
@@ -78,12 +101,12 @@ function MarketScanner({ selectedPairs, onPairSelect }) {
   useEffect(() => {
     getOpportunities();
     checkBotStatus();
-    // Refresh opportunities every 30 seconds
-    const interval = setInterval(() => {
-      getOpportunities();
-      checkBotStatus();
-    }, 30000);
-    return () => clearInterval(interval);
+    // Auto-refresh disabled - user must manually scan
+    // const interval = setInterval(() => {
+    //   getOpportunities();
+    //   checkBotStatus();
+    // }, 30000);
+    // return () => clearInterval(interval);
   }, []);
 
   const checkBotStatus = async () => {
@@ -180,7 +203,7 @@ function MarketScanner({ selectedPairs, onPairSelect }) {
 
   return (
     <div className="market-scanner">
-      <div className="scanner-header" onClick={toggleScannerAccordion}>
+      <div className="scanner-header">
         <h2>📊 Market Scanner</h2>
         <div className="scanner-controls">
           <div className="control-group">
@@ -201,7 +224,7 @@ function MarketScanner({ selectedPairs, onPairSelect }) {
             {scanning ? 'Scanning...' : 'Scan Market'}
           </button>
 
-          <span className="accordion-toggle-icon" aria-hidden="true">
+          <span className="accordion-toggle-icon" aria-hidden="true" onClick={toggleScannerAccordion}>
             {isScannerCollapsed ? 'Expand' : 'Collapse'}
           </span>
         </div>
@@ -317,6 +340,51 @@ function MarketScanner({ selectedPairs, onPairSelect }) {
                   <span key={i} className="signal-tag">{signal}</span>
                 ))}
               </div>
+
+              {opp.ai_analysis && (
+                <div className="ai-analysis-inline">
+                  <div className="ai-header">🤖 AI Analysis</div>
+                  <div className="ai-metrics">
+                    <div className="ai-metric">
+                      <span className="ai-label">Decision:</span>
+                      <span
+                        className="ai-value"
+                        style={{ color: opp.ai_analysis.should_trade ? '#00ff00' : '#ff4444' }}
+                      >
+                        {opp.ai_analysis.should_trade ? '✅ TRADE' : '❌ SKIP'}
+                      </span>
+                    </div>
+                    <div className="ai-metric">
+                      <span className="ai-label">Confidence:</span>
+                      <span
+                        className="ai-value"
+                        style={{
+                          color: opp.ai_analysis.confidence >= 0.7 ? '#00ff00' :
+                                 opp.ai_analysis.confidence >= 0.5 ? '#ffaa00' : '#ff4444'
+                        }}
+                      >
+                        {(opp.ai_analysis.confidence * 100).toFixed(0)}%
+                      </span>
+                    </div>
+                    <div className="ai-metric">
+                      <span className="ai-label">Risk:</span>
+                      <span
+                        className="ai-value"
+                        style={{
+                          color: opp.ai_analysis.risk_assessment === 'low' ? '#00ff00' :
+                                 opp.ai_analysis.risk_assessment === 'medium' ? '#ffaa00' : '#ff4444'
+                        }}
+                      >
+                        {opp.ai_analysis.risk_assessment.toUpperCase()}
+                      </span>
+                    </div>
+                  </div>
+                  <div className="ai-reasoning">
+                    <div className="ai-reasoning-label">Reasoning:</div>
+                    <div className="ai-reasoning-text">{opp.ai_analysis.reasoning}</div>
+                  </div>
+                </div>
+              )}
             </div>
           );
           })
@@ -327,6 +395,7 @@ function MarketScanner({ selectedPairs, onPairSelect }) {
         isOpen={showSettings}
         onClose={() => setShowSettings(false)}
         onStart={handleStartTrading}
+        selectedPairsCount={selectedPairs.length}
       />
     </div>
   );

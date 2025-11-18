@@ -433,8 +433,27 @@ class MultiPairBot:
             self.stop()
 
     def stop(self):
-        """Stop the bot"""
+        """Stop the bot and close all positions"""
         self.running = False
+
+        # Close all open positions before stopping
+        if self.portfolio.positions:
+            logger.info("\n" + "="*80)
+            logger.info("CLOSING ALL POSITIONS")
+            logger.info("="*80)
+
+            # Get current prices for all open positions
+            current_prices = {}
+            for symbol in self.portfolio.positions.keys():
+                try:
+                    price = self.client.get_current_price(symbol)
+                    current_prices[symbol] = price
+                    logger.info(f"Closing {symbol} at ${price}")
+                except Exception as e:
+                    logger.error(f"Failed to get price for {symbol}: {e}")
+
+            # Close all positions
+            self.portfolio.close_all_positions(current_prices)
 
         # Show final stats
         stats = self.portfolio.get_portfolio_stats()

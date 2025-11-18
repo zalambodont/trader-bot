@@ -18,14 +18,6 @@ function ActivePositions() {
       if (response.data.portfolio) {
         const positions = response.data.portfolio.positions || [];
 
-        // Log AI analysis for active positions
-        positions.forEach(pos => {
-          if (pos.ai_analysis) {
-            console.log(`%c📈 ACTIVE POSITION: ${pos.symbol}`, 'color: #00ff00; font-weight: bold;');
-            logAIAnalysis(pos.ai_analysis, `Active Position - ${pos.symbol}`);
-          }
-        });
-
         setPositions(positions);
         setPortfolio(response.data.portfolio);
 
@@ -45,14 +37,6 @@ function ActivePositions() {
       const response = await axios.get(`${API_URL}/api/multi-bot/trade-history?hours=24`);
       if (response.data.trades) {
         const trades = response.data.trades || [];
-
-        // Log AI analysis for closed trades
-        trades.forEach(trade => {
-          if (trade.ai_analysis) {
-            console.log(`%c💰 CLOSED TRADE: ${trade.symbol}`, 'color: #ffaa00; font-weight: bold;');
-            logAIAnalysis(trade.ai_analysis, `Closed Trade - ${trade.symbol} (${trade.pnl > 0 ? 'PROFIT' : 'LOSS'})`);
-          }
-        });
 
         setTradeHistory(trades);
       }
@@ -217,6 +201,47 @@ function ActivePositions() {
                   {pos.unrealized_pnl_pct > 0 ? '+' : ''}{pos.unrealized_pnl_pct?.toFixed(2) || '0.00'}%
                 </span>
               </div>
+
+              {pos.ai_analysis && (
+                <div className="position-ai-analysis">
+                  <div className="ai-header">🤖 AI Analysis</div>
+                  <div className="ai-metrics-compact">
+                    <div className="ai-metric-compact">
+                      <span className="ai-label">Decision:</span>
+                      <span
+                        className="ai-value"
+                        style={{ color: pos.ai_analysis.should_trade ? '#00ff00' : '#ff4444' }}
+                      >
+                        {pos.ai_analysis.should_trade ? '✅ TRADE' : '❌ SKIP'}
+                      </span>
+                    </div>
+                    <div className="ai-metric-compact">
+                      <span className="ai-label">Confidence:</span>
+                      <span
+                        className="ai-value"
+                        style={{
+                          color: pos.ai_analysis.confidence >= 0.7 ? '#00ff00' :
+                                 pos.ai_analysis.confidence >= 0.5 ? '#ffaa00' : '#ff4444'
+                        }}
+                      >
+                        {(pos.ai_analysis.confidence * 100).toFixed(0)}%
+                      </span>
+                    </div>
+                    <div className="ai-metric-compact">
+                      <span className="ai-label">Risk:</span>
+                      <span
+                        className="ai-value"
+                        style={{
+                          color: pos.ai_analysis.risk_assessment === 'low' ? '#00ff00' :
+                                 pos.ai_analysis.risk_assessment === 'medium' ? '#ffaa00' : '#ff4444'
+                        }}
+                      >
+                        {pos.ai_analysis.risk_assessment.toUpperCase()}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
           ))}
         </div>

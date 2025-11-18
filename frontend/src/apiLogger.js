@@ -3,6 +3,9 @@
  * Logs ALL API requests, responses, AI analysis, and errors
  */
 
+// Global logging state
+let loggingEnabled = false;
+
 // Styling for console logs
 const styles = {
   request: 'background: #0066cc; color: white; padding: 2px 6px; border-radius: 3px; font-weight: bold;',
@@ -13,6 +16,7 @@ const styles = {
 };
 
 export const logRequest = (method, url, data = null) => {
+  if (!loggingEnabled) return;
   const timestamp = new Date().toLocaleTimeString();
   console.log(`%c[${timestamp}] API REQUEST → ${method}`, styles.request);
   console.log('URL:', url);
@@ -23,6 +27,7 @@ export const logRequest = (method, url, data = null) => {
 };
 
 export const logResponse = (method, url, response) => {
+  if (!loggingEnabled) return response;
   const timestamp = new Date().toLocaleTimeString();
   console.log(`%c[${timestamp}] API RESPONSE ← ${method}`, styles.response);
   console.log('URL:', url);
@@ -38,6 +43,7 @@ export const logResponse = (method, url, response) => {
 };
 
 export const logError = (method, url, error) => {
+  if (!loggingEnabled) throw error;
   const timestamp = new Date().toLocaleTimeString();
   console.error(`%c[${timestamp}] API ERROR ✖ ${method}`, styles.error);
   console.error('URL:', url);
@@ -87,6 +93,27 @@ const checkForAIAnalysis = (data) => {
 };
 
 export const logAIAnalysis = (analysis, context = '') => {
+  // Add to global AI analyses array for UI display (always)
+  const symbol = context.includes('for') ? context.split('for')[1].trim().split(' ')[0] : 'UNKNOWN';
+
+  if (!window.aiAnalyses) {
+    window.aiAnalyses = [];
+  }
+
+  window.aiAnalyses.push({
+    symbol: symbol,
+    analysis: analysis,
+    timestamp: new Date().toISOString(),
+    context: context
+  });
+
+  // Keep only last 50 analyses
+  if (window.aiAnalyses.length > 50) {
+    window.aiAnalyses = window.aiAnalyses.slice(-50);
+  }
+
+  // Console logging (only if enabled)
+  if (!loggingEnabled) return;
   const timestamp = new Date().toLocaleTimeString();
   console.log(`%c[${timestamp}] 🤖 AI ANALYSIS`, styles.ai);
   if (context) {
@@ -102,6 +129,7 @@ export const logAIAnalysis = (analysis, context = '') => {
 };
 
 export const logWarning = (message, data = null) => {
+  if (!loggingEnabled) return;
   const timestamp = new Date().toLocaleTimeString();
   console.warn(`%c[${timestamp}] ⚠ WARNING`, styles.warning);
   console.warn(message);
@@ -144,9 +172,7 @@ export const createLoggedAxios = (axios) => {
   return axios;
 };
 
-// Export a function to enable/disable logging
-let loggingEnabled = true;
-
+// Export functions to enable/disable logging
 export const setLoggingEnabled = (enabled) => {
   loggingEnabled = enabled;
   console.log(`%c API Logging ${enabled ? 'ENABLED' : 'DISABLED'}`,

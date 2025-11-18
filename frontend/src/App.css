@@ -18,7 +18,8 @@
   display: flex;
   align-items: center;
   gap: 1rem;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
+  min-width: 0;
 }
 
 .header h1 {
@@ -94,6 +95,41 @@
   animation: pulse 2s infinite;
 }
 
+.logger-toggle {
+  padding: 0.5rem 1rem;
+  border-radius: 20px;
+  font-weight: 600;
+  font-size: 0.85rem;
+  border: 2px solid transparent;
+  cursor: pointer;
+  transition: all 0.3s;
+  text-transform: uppercase;
+}
+
+.logger-toggle.enabled {
+  background: #10b981;
+  color: white;
+  border-color: #059669;
+}
+
+.logger-toggle.enabled:hover {
+  background: #059669;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4);
+}
+
+.logger-toggle.disabled {
+  background: #6b7280;
+  color: white;
+  border-color: #4b5563;
+}
+
+.logger-toggle.disabled:hover {
+  background: #4b5563;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(75, 85, 99, 0.4);
+}
+
 .close-all-btn {
   padding: 0.6rem 1.2rem;
   background: linear-gradient(135deg, #ff4444 0%, #cc0000 100%);
@@ -140,6 +176,17 @@
   gap: 1.5rem;
 }
 
+.grid-layout-half {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem;
+  width: 100%;
+}
+
+.grid-item {
+  min-width: 0; /* Prevents grid overflow */
+}
+
 .panel {
   background: rgba(255, 255, 255, 0.05);
   border-radius: 12px;
@@ -163,5 +210,9 @@
 
   .header h1 {
     font-size: 1.4rem;
+  }
+
+  .grid-layout-half {
+    grid-template-columns: 1fr;
   }
 }

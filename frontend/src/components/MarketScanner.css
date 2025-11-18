@@ -418,3 +418,97 @@
     transform: translateX(0);
   }
 }
+
+/* Inline AI Analysis within opportunity cards */
+.ai-analysis-inline {
+  margin-top: 12px;
+  padding: 12px;
+  background: rgba(0, 0, 0, 0.5);
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.ai-header {
+  font-size: 0.8em;
+  font-weight: bold;
+  color: #00ff00;
+  margin-bottom: 6px;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.ai-metrics {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 6px;
+  margin-bottom: 10px;
+}
+
+.ai-metric {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.ai-label {
+  font-size: 0.65em;
+  color: #888;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.ai-value {
+  font-size: 0.75em;
+  font-weight: bold;
+  text-shadow: 0 0 5px currentColor;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.ai-reasoning {
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  padding-top: 8px;
+}
+
+.ai-reasoning-label {
+  font-size: 0.65em;
+  color: #00ff00;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  margin-bottom: 4px;
+  font-weight: 600;
+}
+
+.ai-reasoning-text {
+  font-size: 0.75em;
+  color: #ddd;
+  line-height: 1.4;
+  max-height: 80px;
+  overflow-y: auto;
+  padding-right: 5px;
+}
+
+.ai-reasoning-text::-webkit-scrollbar {
+  width: 4px;
+}
+
+.ai-reasoning-text::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 2px;
+}
+
+.ai-reasoning-text::-webkit-scrollbar-thumb {
+  background: #00ff00;
+  border-radius: 2px;
+}
+
+@media (max-width: 480px) {
+  .ai-metrics {
+    grid-template-columns: 1fr;
+  }
+}

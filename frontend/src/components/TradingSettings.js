@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import './TradingSettings.css';
 
 function TradingSettings({ isOpen, onClose, onStart, initialSettings, selectedPairsCount = 5 }) {
@@ -11,6 +11,14 @@ function TradingSettings({ isOpen, onClose, onStart, initialSettings, selectedPa
     minScore: initialSettings?.minScore || 60,
     tradingMode: initialSettings?.tradingMode || 'paper'
   });
+
+  // Update maxPositions when selectedPairsCount changes
+  useEffect(() => {
+    setSettings(prev => ({
+      ...prev,
+      maxPositions: selectedPairsCount
+    }));
+  }, [selectedPairsCount]);
 
   const handleChange = (field, value) => {
     // Prevent NaN values
@@ -25,11 +33,8 @@ function TradingSettings({ isOpen, onClose, onStart, initialSettings, selectedPa
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    // Override maxPositions with selectedPairsCount
-    onStart({
-      ...settings,
-      maxPositions: selectedPairsCount
-    });
+    // maxPositions is already synced with selectedPairsCount via useEffect
+    onStart(settings);
     onClose();
   };
 
@@ -64,13 +69,13 @@ function TradingSettings({ isOpen, onClose, onStart, initialSettings, selectedPa
               <label>Max Simultaneous Positions</label>
               <input
                 type="number"
-                value={selectedPairsCount}
+                value={settings.maxPositions}
                 readOnly
                 disabled
                 className="readonly-field"
               />
               <span className="help-text">
-                Auto-set to match selected pairs ({selectedPairsCount}). Capital per position: ${(settings.totalCapital / selectedPairsCount).toFixed(2)}
+                Auto-set to match selected pairs ({settings.maxPositions}). Capital per position: ${settings.maxPositions > 0 ? (settings.totalCapital / settings.maxPositions).toFixed(2) : '0.00'}
               </span>
             </div>
           </div>

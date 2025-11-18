@@ -70,12 +70,13 @@ function TradingSettings({ isOpen, onClose, onStart, initialSettings, selectedPa
               <input
                 type="number"
                 value={settings.maxPositions}
-                readOnly
-                disabled
-                className="readonly-field"
+                onChange={(e) => handleChange('maxPositions', parseInt(e.target.value) || 1)}
+                min="1"
+                max="50"
+                required
               />
               <span className="help-text">
-                Auto-set to match selected pairs ({settings.maxPositions}). Capital per position: ${settings.maxPositions > 0 ? (settings.totalCapital / settings.maxPositions).toFixed(2) : '0.00'}
+                Selected pairs: {selectedPairsCount}. Capital per position: ${settings.maxPositions > 0 ? (settings.totalCapital / settings.maxPositions).toFixed(2) : '0.00'}
               </span>
             </div>
           </div>

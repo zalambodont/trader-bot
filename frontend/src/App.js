@@ -4,8 +4,22 @@ import './App.css';
 import PairSearch from './components/PairSearch';
 import MarketScanner from './components/MarketScanner';
 import ActivePositions from './components/ActivePositions';
+import { createLoggedAxios } from './apiLogger';
+
+// Setup comprehensive API logging
+createLoggedAxios(axios);
 
 const API_URL = 'http://localhost:5001';
+
+// Log initialization
+console.log('%c═══════════════════════════════════════', 'color: #00ff00; font-weight: bold;');
+console.log('%c🚀 CRYPTO TRADING BOT - INITIALIZED', 'color: #00ff00; font-weight: bold; font-size: 16px;');
+console.log('%c═══════════════════════════════════════', 'color: #00ff00; font-weight: bold;');
+console.log('✅ API Logging: ENABLED');
+console.log('✅ AI Analysis Logging: ENABLED');
+console.log('✅ Error Logging: ENABLED');
+console.log('📡 API URL:', API_URL);
+console.log('---');
 
 function App() {
   const [selectedPairs, setSelectedPairs] = useState([]);

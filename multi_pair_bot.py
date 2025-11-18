@@ -225,7 +225,7 @@ class MultiPairBot:
             stop_loss = price * (1 + self.stop_loss_pct)
             take_profit = price * (1 - self.take_profit_pct)
 
-        return {
+        params = {
             'symbol': symbol,
             'direction': direction,
             'entry_price': price,
@@ -235,6 +235,12 @@ class MultiPairBot:
             'score': opportunity['score'],
             'signals': opportunity['signals']
         }
+
+        # Include AI analysis if it exists
+        if 'ai_analysis' in opportunity:
+            params['ai_analysis'] = opportunity['ai_analysis']
+
+        return params
 
     def execute_trade(self, params):
         """
@@ -279,7 +285,9 @@ class MultiPairBot:
                 entry_price=params['entry_price'],
                 quantity=params['quantity'],
                 stop_loss=params['stop_loss'],
-                take_profit=params['take_profit']
+                take_profit=params['take_profit'],
+                ai_analysis=params.get('ai_analysis'),
+                opportunity_data=params
             )
             return position
 

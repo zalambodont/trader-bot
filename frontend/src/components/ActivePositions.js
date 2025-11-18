@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 import { LineChart, Line, Tooltip, ResponsiveContainer } from 'recharts';
 import './ActivePositions.css';
+import { logAIAnalysis } from '../apiLogger';
 
 const API_URL = 'http://localhost:5001';
 
@@ -15,11 +16,21 @@ function ActivePositions() {
     try {
       const response = await axios.get(`${API_URL}/api/multi-bot/status`);
       if (response.data.portfolio) {
-        setPositions(response.data.portfolio.positions || []);
+        const positions = response.data.portfolio.positions || [];
+
+        // Log AI analysis for active positions
+        positions.forEach(pos => {
+          if (pos.ai_analysis) {
+            console.log(`%c📈 ACTIVE POSITION: ${pos.symbol}`, 'color: #00ff00; font-weight: bold;');
+            logAIAnalysis(pos.ai_analysis, `Active Position - ${pos.symbol}`);
+          }
+        });
+
+        setPositions(positions);
         setPortfolio(response.data.portfolio);
 
         // Fetch chart data for each position
-        response.data.portfolio.positions?.forEach(pos => {
+        positions.forEach(pos => {
           fetchChartForSymbol(pos.symbol);
         });
       }
@@ -33,7 +44,17 @@ function ActivePositions() {
     try {
       const response = await axios.get(`${API_URL}/api/multi-bot/trade-history?hours=24`);
       if (response.data.trades) {
-        setTradeHistory(response.data.trades);
+        const trades = response.data.trades || [];
+
+        // Log AI analysis for closed trades
+        trades.forEach(trade => {
+          if (trade.ai_analysis) {
+            console.log(`%c💰 CLOSED TRADE: ${trade.symbol}`, 'color: #ffaa00; font-weight: bold;');
+            logAIAnalysis(trade.ai_analysis, `Closed Trade - ${trade.symbol} (${trade.pnl > 0 ? 'PROFIT' : 'LOSS'})`);
+          }
+        });
+
+        setTradeHistory(trades);
       }
     } catch (error) {
       console.error('Failed to fetch trade history:', error);

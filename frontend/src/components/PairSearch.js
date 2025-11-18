@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import TradingSettings from './TradingSettings';
 import './PairSearch.css';
+import { logAIAnalysis, logWarning } from '../apiLogger';
 
 const API_URL = 'http://localhost:5001';
 
@@ -74,7 +75,17 @@ function PairSearch({ selectedPairs, onPairSelect }) {
       });
 
       if (response.data.success && response.data.opportunity) {
-        setSearchedPairs(prev => [...prev, response.data.opportunity]);
+        const opportunity = response.data.opportunity;
+
+        // Log AI analysis if present
+        if (opportunity.ai_analysis) {
+          console.log(`%c🔍 PAIR SEARCH: ${pair}`, 'color: #00ccff; font-weight: bold; font-size: 14px;');
+          logAIAnalysis(opportunity.ai_analysis, `Pair Search Result for ${pair}`);
+        } else {
+          logWarning(`No AI analysis returned for ${pair}`, opportunity);
+        }
+
+        setSearchedPairs(prev => [...prev, opportunity]);
       }
     } catch (error) {
       console.error('Failed to fetch pair data:', error);

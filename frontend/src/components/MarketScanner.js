@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import TradingSettings from './TradingSettings';
 import './MarketScanner.css';
+import { logAIAnalysis, logWarning } from '../apiLogger';
 
 const API_URL = 'http://localhost:5001';
 
@@ -22,7 +23,31 @@ function MarketScanner({ selectedPairs, onPairSelect }) {
       });
 
       if (response.data.success) {
-        setOpportunities(response.data.opportunities);
+        const opportunities = response.data.opportunities || [];
+
+        console.log(`%c📊 MARKET SCAN COMPLETE`, 'color: #ffaa00; font-weight: bold; font-size: 14px;');
+        console.log(`Found ${opportunities.length} opportunities with min score ${minScore}`);
+
+        // Log AI analysis for each opportunity
+        let aiCount = 0;
+        opportunities.forEach(opp => {
+          if (opp.ai_analysis) {
+            aiCount++;
+            logAIAnalysis(opp.ai_analysis, `Market Scanner - ${opp.symbol}`);
+          }
+        });
+
+        if (aiCount === 0) {
+          logWarning('No AI analysis found in market scan results', {
+            totalOpportunities: opportunities.length,
+            minScore: minScore
+          });
+        } else {
+          console.log(`%c✅ AI Analysis received for ${aiCount}/${opportunities.length} opportunities`,
+            'color: #00ff00; font-weight: bold;');
+        }
+
+        setOpportunities(opportunities);
         setLastScan(new Date());
       }
     } catch (error) {
@@ -35,7 +60,16 @@ function MarketScanner({ selectedPairs, onPairSelect }) {
   const getOpportunities = async () => {
     try {
       const response = await axios.get(`${API_URL}/api/scanner/opportunities?limit=20`);
-      setOpportunities(response.data.opportunities);
+      const opportunities = response.data.opportunities || [];
+
+      // Log AI analysis if present
+      opportunities.forEach(opp => {
+        if (opp.ai_analysis) {
+          logAIAnalysis(opp.ai_analysis, `Auto-refresh - ${opp.symbol}`);
+        }
+      });
+
+      setOpportunities(opportunities);
     } catch (error) {
       console.error('Failed to get opportunities:', error);
     }

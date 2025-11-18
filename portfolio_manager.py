@@ -82,7 +82,7 @@ class PortfolioManager:
             'price': price
         }
 
-    def open_position(self, symbol, direction, entry_price, quantity, stop_loss=None, take_profit=None):
+    def open_position(self, symbol, direction, entry_price, quantity, stop_loss=None, take_profit=None, ai_analysis=None, opportunity_data=None):
         """
         Open a new position
 
@@ -93,6 +93,8 @@ class PortfolioManager:
             quantity: Position size
             stop_loss: Stop loss price (optional)
             take_profit: Take profit price (optional)
+            ai_analysis: AI analysis data (optional)
+            opportunity_data: Additional opportunity data (optional)
 
         Returns:
             Position info or None if failed
@@ -116,6 +118,15 @@ class PortfolioManager:
             'entry_time': datetime.now().isoformat(),
             'status': 'OPEN'
         }
+
+        # Add AI analysis if provided
+        if ai_analysis:
+            position['ai_analysis'] = ai_analysis
+
+        # Add opportunity data if provided (score, signals, etc.)
+        if opportunity_data:
+            position['opportunity_score'] = opportunity_data.get('score')
+            position['opportunity_signals'] = opportunity_data.get('signals')
 
         self.positions[symbol] = position
         self.reserved_capital += position_value
@@ -209,6 +220,14 @@ class PortfolioManager:
             'reason': reason,
             'duration': None  # Could calculate this
         }
+
+        # Preserve AI analysis and opportunity data in trade history
+        if 'ai_analysis' in position:
+            trade['ai_analysis'] = position['ai_analysis']
+        if 'opportunity_score' in position:
+            trade['opportunity_score'] = position['opportunity_score']
+        if 'opportunity_signals' in position:
+            trade['opportunity_signals'] = position['opportunity_signals']
 
         self.trade_history.append(trade)
 

@@ -15,6 +15,7 @@ function PairSearch({ selectedPairs, onPairSelect }) {
   const [showSettings, setShowSettings] = useState(false);
   const [botRunning, setBotRunning] = useState(false);
   const [isPairsCollapsed, setIsPairsCollapsed] = useState(false);
+  const [singlePairToTrade, setSinglePairToTrade] = useState(null);
 
   useEffect(() => {
     fetchAllPairs();
@@ -131,11 +132,20 @@ function PairSearch({ selectedPairs, onPairSelect }) {
       alert('Please select at least one pair to trade');
       return;
     }
+    setSinglePairToTrade(null);
+    setShowSettings(true);
+  };
+
+  const startTradingSinglePair = (pairSymbol) => {
+    setSinglePairToTrade(pairSymbol);
     setShowSettings(true);
   };
 
   const handleStartTrading = async (settings) => {
     try {
+      // Determine which pairs to trade
+      const pairsToTrade = singlePairToTrade ? [singlePairToTrade] : selectedPairs;
+
       const response = await axios.post(`${API_URL}/api/multi-bot/start`, {
         quote_currency: 'USDT',
         min_volume: 500000,
@@ -149,13 +159,14 @@ function PairSearch({ selectedPairs, onPairSelect }) {
         timeframe: '15m',
         stop_loss_pct: settings.stopLossPct / 100,
         take_profit_pct: settings.takeProfitPct / 100,
-        selected_pairs: selectedPairs
+        selected_pairs: pairsToTrade
       });
 
       if (response.data.success) {
         setBotRunning(true);
         setShowSettings(false);
-        alert(`Started trading ${selectedPairs.length} pairs with $${settings.totalCapital} total capital`);
+        setSinglePairToTrade(null);
+        alert(`Started trading ${pairsToTrade.length} pair${pairsToTrade.length !== 1 ? 's' : ''} with $${settings.totalCapital} total capital`);
       }
     } catch (error) {
       console.error('Failed to start bot:', error);
@@ -370,6 +381,62 @@ function PairSearch({ selectedPairs, onPairSelect }) {
                       <span className="no-signals">No signals</span>
                     )}
                   </div>
+
+                  {pair.ai_analysis && (
+                    <div className="ai-analysis-inline">
+                      <div className="ai-header">🤖 AI Analysis (Informative)</div>
+                      <div className="ai-metrics">
+                        <div className="ai-metric">
+                          <span className="ai-label">Decision:</span>
+                          <span
+                            className="ai-value"
+                            style={{ color: pair.ai_analysis.should_trade ? '#00ff00' : '#ff4444' }}
+                          >
+                            {pair.ai_analysis.should_trade ? '✅ TRADE' : '❌ SKIP'}
+                          </span>
+                        </div>
+                        <div className="ai-metric">
+                          <span className="ai-label">Confidence:</span>
+                          <span
+                            className="ai-value"
+                            style={{
+                              color: pair.ai_analysis.confidence >= 0.7 ? '#00ff00' :
+                                     pair.ai_analysis.confidence >= 0.5 ? '#ffaa00' : '#ff4444'
+                            }}
+                          >
+                            {(pair.ai_analysis.confidence * 100).toFixed(0)}%
+                          </span>
+                        </div>
+                        <div className="ai-metric">
+                          <span className="ai-label">Risk:</span>
+                          <span
+                            className="ai-value"
+                            style={{
+                              color: pair.ai_analysis.risk_assessment === 'low' ? '#00ff00' :
+                                     pair.ai_analysis.risk_assessment === 'medium' ? '#ffaa00' : '#ff4444'
+                            }}
+                          >
+                            {pair.ai_analysis.risk_assessment.toUpperCase()}
+                          </span>
+                        </div>
+                      </div>
+                      <div className="ai-reasoning">
+                        <div className="ai-reasoning-label">Reasoning:</div>
+                        <div className="ai-reasoning-text">{pair.ai_analysis.reasoning}</div>
+                      </div>
+                    </div>
+                  )}
+
+                  <button
+                    className="trade-single-pair-btn"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      startTradingSinglePair(pair.symbol);
+                    }}
+                    disabled={botRunning}
+                  >
+                    {botRunning ? 'Trading Active' : 'Trade This Pair'}
+                  </button>
 
                   {isSelected && (
                     <div className="selected-badge">✓ Selected for Trading</div>

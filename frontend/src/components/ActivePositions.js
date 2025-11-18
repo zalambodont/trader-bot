@@ -11,6 +11,7 @@ function ActivePositions() {
   const [portfolio, setPortfolio] = useState(null);
   const [chartData, setChartData] = useState({});
   const [tradeHistory, setTradeHistory] = useState([]);
+  const [isRunning, setIsRunning] = useState(false);
 
   const fetchPositions = useCallback(async () => {
     try {
@@ -20,6 +21,7 @@ function ActivePositions() {
 
         setPositions(positions);
         setPortfolio(response.data.portfolio);
+        setIsRunning(response.data.running || false);
 
         // Fetch chart data for each position
         positions.forEach(pos => {
@@ -76,6 +78,22 @@ function ActivePositions() {
     }
   };
 
+  const handleStopTrading = async () => {
+    if (!window.confirm('Are you sure you want to stop trading? All open positions will be closed.')) {
+      return;
+    }
+
+    try {
+      await axios.post(`${API_URL}/api/multi-bot/stop`);
+      setIsRunning(false);
+      alert('Trading stopped successfully. All positions have been closed.');
+      fetchPositions();
+    } catch (error) {
+      console.error('Failed to stop trading:', error);
+      alert('Failed to stop trading. Please try again.');
+    }
+  };
+
   const getPnLColor = (pnl) => {
     if (pnl > 0) return '#00ff00';
     if (pnl < 0) return '#ff4444';
@@ -98,7 +116,14 @@ function ActivePositions() {
   return (
     <div className="active-positions">
       <div className="positions-header">
-        <h3>Active Positions ({positions.length}/{portfolio.max_positions})</h3>
+        <div className="header-top">
+          <h3>Active Positions ({positions.length}/{portfolio.max_positions})</h3>
+          {isRunning && (
+            <button className="stop-trading-btn" onClick={handleStopTrading}>
+              Stop Trading
+            </button>
+          )}
+        </div>
         <div className="portfolio-summary">
           <div className="summary-item">
             <span>Total Value:</span>

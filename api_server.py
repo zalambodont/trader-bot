@@ -577,7 +577,7 @@ def close_position():
 
         # Get current price from binance client
         try:
-            current_price = multi_pair_state['bot'].binance_client.get_current_price(symbol)
+            current_price = multi_pair_state['bot'].client.get_current_price(symbol)
         except Exception as e:
             return jsonify({'error': f'Failed to get current price: {str(e)}'}), 500
 

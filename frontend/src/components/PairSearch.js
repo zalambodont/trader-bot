@@ -3,18 +3,18 @@ import axios from 'axios';
 import TradingSettings from './TradingSettings';
 import './PairSearch.css';
 import { logAIAnalysis, logWarning } from '../apiLogger';
-import { showSuccess, showError, showWarning } from '../utils/toast';
+import { showSuccess, showError } from '../utils/toast';
 
 const API_URL = 'http://localhost:5001';
 
-function PairSearch({ selectedPairs, onPairSelect }) {
+function PairSearch() {
   const [searchQuery, setSearchQuery] = useState('');
   const [allPairs, setAllPairs] = useState([]);
   const [showDropdown, setShowDropdown] = useState(false);
   const [searchedPairs, setSearchedPairs] = useState([]);
   const [loading, setLoading] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
-  const [botRunning, setBotRunning] = useState(false);
+  const [activePositions, setActivePositions] = useState([]);
   const [isPairsCollapsed, setIsPairsCollapsed] = useState(false);
   const [singlePairToTrade, setSinglePairToTrade] = useState(null);
 
@@ -29,9 +29,14 @@ function PairSearch({ selectedPairs, onPairSelect }) {
   const checkBotStatus = async () => {
     try {
       const response = await axios.get(`${API_URL}/api/multi-bot/status`);
-      setBotRunning(response.data.running);
+      if (response.data.portfolio && response.data.portfolio.positions) {
+        setActivePositions(response.data.portfolio.positions);
+      } else {
+        setActivePositions([]);
+      }
     } catch (error) {
       console.error('Failed to check bot status:', error);
+      setActivePositions([]);
     }
   };
 
@@ -128,15 +133,6 @@ function PairSearch({ selectedPairs, onPairSelect }) {
     return '#888';
   };
 
-  const startTradingSelected = () => {
-    if (selectedPairs.length === 0) {
-      showWarning('Please select at least one pair to trade');
-      return;
-    }
-    setSinglePairToTrade(null);
-    setShowSettings(true);
-  };
-
   const startTradingSinglePair = (pairSymbol) => {
     setSinglePairToTrade(pairSymbol);
     setShowSettings(true);
@@ -144,8 +140,8 @@ function PairSearch({ selectedPairs, onPairSelect }) {
 
   const handleStartTrading = async (settings) => {
     try {
-      // Determine which pairs to trade
-      const pairsToTrade = singlePairToTrade ? [singlePairToTrade] : selectedPairs;
+      // Only trade the single selected pair
+      const pairsToTrade = [singlePairToTrade];
 
       const response = await axios.post(`${API_URL}/api/multi-bot/start`, {
         quote_currency: 'USDT',
@@ -164,38 +160,15 @@ function PairSearch({ selectedPairs, onPairSelect }) {
       });
 
       if (response.data.success) {
-        setBotRunning(true);
         setShowSettings(false);
         setSinglePairToTrade(null);
         showSuccess(`Started trading ${pairsToTrade.length} pair${pairsToTrade.length !== 1 ? 's' : ''} with $${settings.totalCapital} total capital`);
+        checkBotStatus(); // Refresh active positions
       }
     } catch (error) {
       console.error('Failed to start bot:', error);
       showError('Failed to start trading: ' + error.message);
     }
-  };
-
-  const stopTrading = async () => {
-    try {
-      await axios.post(`${API_URL}/api/multi-bot/stop`);
-      setBotRunning(false);
-      alert('Trading stopped');
-    } catch (error) {
-      console.error('Failed to stop bot:', error);
-      alert('Failed to stop trading');
-    }
-  };
-
-  const selectAllSearched = () => {
-    searchedPairs.forEach(pair => {
-      if (!selectedPairs.includes(pair.symbol)) {
-        onPairSelect(pair.symbol);
-      }
-    });
-  };
-
-  const clearSelection = () => {
-    selectedPairs.forEach(pair => onPairSelect(pair));
   };
 
   const togglePairsAccordion = () => {
@@ -271,34 +244,14 @@ function PairSearch({ selectedPairs, onPairSelect }) {
             <div className="selection-controls">
               <div className="selection-info">
                 <h3>Analyzed Pairs ({searchedPairs.length})</h3>
-                {selectedPairs.length > 0 && (
-                  <span className="selected-count">
-                    {selectedPairs.length} pair{selectedPairs.length !== 1 ? 's' : ''} selected
-                  </span>
-                )}
               </div>
               <div className="selection-buttons">
-                <button onClick={selectAllSearched} className="select-btn">Select All</button>
-                <button onClick={clearSelection} className="select-btn">Clear Selection</button>
                 <button
                   onClick={() => setSearchedPairs([])}
                   className="clear-all-btn"
                 >
                   Clear All Pairs
                 </button>
-                {botRunning ? (
-                  <button onClick={stopTrading} className="stop-trading-btn">
-                    Stop Trading
-                  </button>
-                ) : (
-                  <button
-                    onClick={startTradingSelected}
-                    disabled={selectedPairs.length === 0}
-                    className="start-trading-btn"
-                  >
-                    Configure & Trade ({selectedPairs.length})
-                  </button>
-                )}
               </div>
             </div>
           )}
@@ -308,12 +261,10 @@ function PairSearch({ selectedPairs, onPairSelect }) {
             aria-hidden={isPairsCollapsed}
           >
             {searchedPairs.map((pair, index) => {
-              const isSelected = selectedPairs.includes(pair.symbol);
               return (
                 <div
                   key={index}
-                  className={`pair-card ${isSelected ? 'selected' : ''}`}
-                  onClick={() => onPairSelect(pair.symbol)}
+                  className="pair-card"
                 >
                   <button
                     className="remove-pair-btn"
@@ -327,12 +278,6 @@ function PairSearch({ selectedPairs, onPairSelect }) {
 
                   <div className="pair-card-header">
                     <div className="pair-symbol-wrapper">
-                      <input
-                        type="checkbox"
-                        checked={isSelected}
-                        onChange={() => {}}
-                        className="pair-checkbox"
-                      />
                       <span className="pair-symbol">{pair.symbol}</span>
                     </div>
                     <span
@@ -434,14 +379,10 @@ function PairSearch({ selectedPairs, onPairSelect }) {
                       e.stopPropagation();
                       startTradingSinglePair(pair.symbol);
                     }}
-                    disabled={botRunning}
+                    disabled={activePositions.some(pos => pos.symbol === pair.symbol)}
                   >
-                    {botRunning ? 'Trading Active' : 'Trade This Pair'}
+                    {activePositions.some(pos => pos.symbol === pair.symbol) ? 'Trading Active' : 'Trade This Pair'}
                   </button>
-
-                  {isSelected && (
-                    <div className="selected-badge">✓ Selected for Trading</div>
-                  )}
                 </div>
               );
             })}

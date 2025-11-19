@@ -1,24 +1,16 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import './TradingSettings.css';
 
-function TradingSettings({ isOpen, onClose, onStart, initialSettings, selectedPairsCount = 5 }) {
+function TradingSettings({ isOpen, onClose, onStart, initialSettings }) {
   const [settings, setSettings] = useState({
     totalCapital: initialSettings?.totalCapital || 10000,
-    maxPositions: selectedPairsCount, // Automatically set to match selected pairs
+    maxPositions: 1, // Always 1 since we trade one pair at a time
     stopLossPct: initialSettings?.stopLossPct || 2,
     takeProfitPct: initialSettings?.takeProfitPct || 4,
     scanInterval: initialSettings?.scanInterval || 60,
     minScore: initialSettings?.minScore || 60,
     tradingMode: initialSettings?.tradingMode || 'paper'
   });
-
-  // Update maxPositions when selectedPairsCount changes
-  useEffect(() => {
-    setSettings(prev => ({
-      ...prev,
-      maxPositions: selectedPairsCount
-    }));
-  }, [selectedPairsCount]);
 
   const handleChange = (field, value) => {
     // Prevent NaN values
@@ -53,7 +45,7 @@ function TradingSettings({ isOpen, onClose, onStart, initialSettings, selectedPa
             <h3>Capital Management</h3>
 
             <div className="form-group">
-              <label>Total Capital (USDT)</label>
+              <label>Capital to Trade (USDT)</label>
               <input
                 type="number"
                 value={settings.totalCapital}
@@ -62,22 +54,7 @@ function TradingSettings({ isOpen, onClose, onStart, initialSettings, selectedPa
                 step="100"
                 required
               />
-              <span className="help-text">Total amount to allocate across all positions</span>
-            </div>
-
-            <div className="form-group">
-              <label>Max Simultaneous Positions</label>
-              <input
-                type="number"
-                value={settings.maxPositions}
-                onChange={(e) => handleChange('maxPositions', parseInt(e.target.value) || 1)}
-                min="1"
-                max="50"
-                required
-              />
-              <span className="help-text">
-                Selected pairs: {selectedPairsCount}. Capital per position: ${settings.maxPositions > 0 ? (settings.totalCapital / settings.maxPositions).toFixed(2) : '0.00'}
-              </span>
+              <span className="help-text">Amount to use for this trade</span>
             </div>
           </div>
 

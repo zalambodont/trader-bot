@@ -2,7 +2,6 @@ import React, { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 import { LineChart, Line, Tooltip, ResponsiveContainer } from 'recharts';
 import './ActivePositions.css';
-import { logAIAnalysis } from '../apiLogger';
 import { showSuccess, showError, showConfirm } from '../utils/toast';
 
 const API_URL = 'http://localhost:5001';

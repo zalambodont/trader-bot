@@ -4,7 +4,7 @@ import './App.css';
 import PairSearch from './components/PairSearch';
 import MarketScanner from './components/MarketScanner';
 import ActivePositions from './components/ActivePositions';
-import { createLoggedAxios, setLoggingEnabled, isLoggingEnabled } from './apiLogger';
+import { createLoggedAxios, setLoggingEnabled } from './apiLogger';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { showSuccess, showError, showWarning, showInfo, showConfirm } from './utils/toast';
@@ -28,7 +28,6 @@ console.log('---');
 window.aiAnalyses = [];
 
 function App() {
-  const [selectedPairs, setSelectedPairs] = useState([]);
   const [portfolioStats, setPortfolioStats] = useState({
     total_value: 0,
     total_unrealized_pnl: 0,
@@ -107,16 +106,6 @@ function App() {
     );
   };
 
-  const handlePairSelect = (symbol) => {
-    setSelectedPairs(prev => {
-      if (prev.includes(symbol)) {
-        return prev.filter(s => s !== symbol);
-      } else {
-        return [...prev, symbol];
-      }
-    });
-  };
-
   const getPnLColor = (pnl) => {
     if (pnl > 0) return '#00ff00';
     if (pnl < 0) return '#ff4444';
@@ -192,8 +181,8 @@ function App() {
 
       <div className="dashboard">
         <div className="main-panel-full">
-          <PairSearch selectedPairs={selectedPairs} onPairSelect={handlePairSelect} />
-          <MarketScanner selectedPairs={selectedPairs} onPairSelect={handlePairSelect} />
+          <PairSearch />
+          <MarketScanner />
           <ActivePositions />
         </div>
       </div>

@@ -3,16 +3,16 @@ import axios from 'axios';
 import TradingSettings from './TradingSettings';
 import './MarketScanner.css';
 import { logAIAnalysis, logWarning } from '../apiLogger';
-import { showSuccess, showError, showWarning } from '../utils/toast';
+import { showSuccess, showError } from '../utils/toast';
 
 const API_URL = 'http://localhost:5001';
 
-function MarketScanner({ selectedPairs, onPairSelect }) {
+function MarketScanner() {
   const [scanning, setScanning] = useState(false);
   const [opportunities, setOpportunities] = useState([]);
   const [minScore, setMinScore] = useState(65);
   const [lastScan, setLastScan] = useState(null);
-  const [botRunning, setBotRunning] = useState(false);
+  const [activePositions, setActivePositions] = useState([]);
   const [showSettings, setShowSettings] = useState(false);
   const [isScannerCollapsed, setIsScannerCollapsed] = useState(false);
   const [singlePairToTrade, setSinglePairToTrade] = useState(null);
@@ -30,19 +30,12 @@ function MarketScanner({ selectedPairs, onPairSelect }) {
         console.log(`%c📊 MARKET SCAN COMPLETE`, 'color: #ffaa00; font-weight: bold; font-size: 14px;');
         console.log(`Found ${opportunities.length} opportunities with min score ${minScore}`);
 
-        // Log AI analysis for each opportunity and auto-select if AI recommends trading
+        // Log AI analysis for each opportunity
         let aiCount = 0;
-        let autoSelectedCount = 0;
         opportunities.forEach(opp => {
           if (opp.ai_analysis) {
             aiCount++;
             logAIAnalysis(opp.ai_analysis, `Market Scanner - ${opp.symbol}`);
-
-            // Auto-select pairs where AI recommends trading
-            if (opp.ai_analysis.should_trade && !selectedPairs.includes(opp.symbol)) {
-              onPairSelect(opp.symbol);
-              autoSelectedCount++;
-            }
           }
         });
 
@@ -54,10 +47,6 @@ function MarketScanner({ selectedPairs, onPairSelect }) {
         } else {
           console.log(`%c✅ AI Analysis received for ${aiCount}/${opportunities.length} opportunities`,
             'color: #00ff00; font-weight: bold;');
-          if (autoSelectedCount > 0) {
-            console.log(`%c🤖 Auto-selected ${autoSelectedCount} pairs based on AI recommendation`,
-              'color: #00ff00; font-weight: bold;');
-          }
         }
 
         setOpportunities(opportunities);
@@ -75,24 +64,12 @@ function MarketScanner({ selectedPairs, onPairSelect }) {
       const response = await axios.get(`${API_URL}/api/scanner/opportunities?limit=20`);
       const opportunities = response.data.opportunities || [];
 
-      // Log AI analysis if present and auto-select if AI recommends trading
-      let autoSelectedCount = 0;
+      // Log AI analysis if present
       opportunities.forEach(opp => {
         if (opp.ai_analysis) {
           logAIAnalysis(opp.ai_analysis, `Auto-refresh - ${opp.symbol}`);
-
-          // Auto-select pairs where AI recommends trading (only on first discovery)
-          if (opp.ai_analysis.should_trade && !selectedPairs.includes(opp.symbol)) {
-            onPairSelect(opp.symbol);
-            autoSelectedCount++;
-          }
         }
       });
-
-      if (autoSelectedCount > 0) {
-        console.log(`%c🤖 Auto-selected ${autoSelectedCount} new pairs based on AI recommendation`,
-          'color: #00ff00; font-weight: bold;');
-      }
 
       setOpportunities(opportunities);
     } catch (error) {
@@ -114,35 +91,15 @@ function MarketScanner({ selectedPairs, onPairSelect }) {
   const checkBotStatus = async () => {
     try {
       const response = await axios.get(`${API_URL}/api/multi-bot/status`);
-      setBotRunning(response.data.running);
+      if (response.data.portfolio && response.data.portfolio.positions) {
+        setActivePositions(response.data.portfolio.positions);
+      } else {
+        setActivePositions([]);
+      }
     } catch (error) {
       console.error('Failed to check bot status:', error);
+      setActivePositions([]);
     }
-  };
-
-  const togglePairSelection = (symbol) => {
-    onPairSelect(symbol);
-  };
-
-  const selectAll = () => {
-    opportunities.forEach(opp => {
-      if (!selectedPairs.includes(opp.symbol)) {
-        onPairSelect(opp.symbol);
-      }
-    });
-  };
-
-  const clearSelection = () => {
-    selectedPairs.forEach(pair => onPairSelect(pair));
-  };
-
-  const startTradingSelected = () => {
-    if (selectedPairs.length === 0) {
-      showWarning('Please select at least one pair to trade');
-      return;
-    }
-    setSinglePairToTrade(null);
-    setShowSettings(true);
   };
 
   const startTradingSinglePair = (pairSymbol) => {
@@ -152,8 +109,8 @@ function MarketScanner({ selectedPairs, onPairSelect }) {
 
   const handleStartTrading = async (settings) => {
     try {
-      // Determine which pairs to trade
-      const pairsToTrade = singlePairToTrade ? [singlePairToTrade] : selectedPairs;
+      // Only trade the single selected pair
+      const pairsToTrade = [singlePairToTrade];
 
       const response = await axios.post(`${API_URL}/api/multi-bot/start`, {
         quote_currency: 'USDT',
@@ -172,25 +129,14 @@ function MarketScanner({ selectedPairs, onPairSelect }) {
       });
 
       if (response.data.success) {
-        setBotRunning(true);
         setShowSettings(false);
         setSinglePairToTrade(null);
         showSuccess(`Started trading ${pairsToTrade.length} pair${pairsToTrade.length !== 1 ? 's' : ''} with $${settings.totalCapital} total capital`);
+        checkBotStatus(); // Refresh active positions
       }
     } catch (error) {
       console.error('Failed to start bot:', error);
       showError('Failed to start trading: ' + error.message);
-    }
-  };
-
-  const stopTrading = async () => {
-    try {
-      await axios.post(`${API_URL}/api/multi-bot/stop`);
-      setBotRunning(false);
-      showSuccess('Trading stopped');
-    } catch (error) {
-      console.error('Failed to stop bot:', error);
-      showError('Failed to stop trading');
     }
   };
 
@@ -244,37 +190,6 @@ function MarketScanner({ selectedPairs, onPairSelect }) {
         
       </div>
 
-      {opportunities.length > 0 && (
-        <div
-          className={`selection-controls`}
-          
-        >
-          <div className="selection-info">
-            {selectedPairs.length > 0 ? (
-              <span>{selectedPairs.length} pair{selectedPairs.length !== 1 ? 's' : ''} selected</span>
-            ) : (
-              <span>Click cards to select pairs</span>
-            )}
-          </div>
-          <div className="selection-buttons">
-            <button onClick={selectAll} className="select-btn">Select All</button>
-            <button onClick={clearSelection} className="select-btn">Clear</button>
-            {botRunning ? (
-              <button onClick={stopTrading} className="stop-trading-btn">
-                Stop Trading
-              </button>
-            ) : (
-              <button
-                onClick={startTradingSelected}
-                disabled={selectedPairs.length === 0}
-                className="start-trading-btn"
-              >
-                Configure & Trade ({selectedPairs.length})
-              </button>
-            )}
-          </div>
-        </div>
-      )}
 
       {lastScan && !isScannerCollapsed && (
         <div className="scan-info">
@@ -293,23 +208,13 @@ function MarketScanner({ selectedPairs, onPairSelect }) {
           </div>
         ) : (
           opportunities.map((opp, index) => {
-            const isSelected = selectedPairs.includes(opp.symbol);
             return (
               <div
                 key={index}
-                className={`opportunity-card ${isSelected ? 'selected' : ''}`}
-                onClick={() => togglePairSelection(opp.symbol)}
+                className="opportunity-card"
               >
                 <div className="opp-header">
-                  <div className="opp-symbol-wrapper">
-                    <input
-                      type="checkbox"
-                      checked={isSelected}
-                      onChange={() => {}}
-                      className="pair-checkbox"
-                    />
-                    <span className="opp-symbol">{opp.symbol}</span>
-                  </div>
+                  <span className="opp-symbol">{opp.symbol}</span>
                   <span
                     className="opp-score"
                     style={{ color: getScoreColor(opp.score) }}
@@ -405,14 +310,10 @@ function MarketScanner({ selectedPairs, onPairSelect }) {
                   e.stopPropagation();
                   startTradingSinglePair(opp.symbol);
                 }}
-                disabled={botRunning}
+                disabled={activePositions.some(pos => pos.symbol === opp.symbol)}
               >
-                {botRunning ? 'Trading Active' : 'Trade This Pair'}
+                {activePositions.some(pos => pos.symbol === opp.symbol) ? 'Trading Active' : 'Trade This Pair'}
               </button>
-
-              {isSelected && (
-                <div className="selected-badge">✓ Selected for Trading</div>
-              )}
             </div>
           );
           })
@@ -423,7 +324,6 @@ function MarketScanner({ selectedPairs, onPairSelect }) {
         isOpen={showSettings}
         onClose={() => setShowSettings(false)}
         onStart={handleStartTrading}
-        selectedPairsCount={selectedPairs.length}
       />
     </div>
   );

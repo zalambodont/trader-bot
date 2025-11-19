@@ -75,9 +75,13 @@ class MultiPairBot:
             opportunities = []
             for symbol in self.selected_pairs:
                 opp = self.scanner.analyze_pair(symbol, timeframe=self.config.get('TIMEFRAME', '15m'))
-                if opp and opp['score'] >= self.min_opportunity_score:
+                if opp:
+                    # Always include manually selected pairs, regardless of score
                     opportunities.append(opp)
-                    print(f"  ✓ {symbol}: Score={opp['score']}, Direction={opp.get('direction', 'NONE')}, Price=${opp['price']:.2f}")
+                    score_indicator = "✓" if opp['score'] >= self.min_opportunity_score else "⚠️"
+                    print(f"  {score_indicator} {symbol}: Score={opp['score']}, Direction={opp.get('direction', 'NONE')}, Price=${opp['price']:.2f}")
+                    if opp['score'] < self.min_opportunity_score:
+                        print(f"    ℹ️  Score below threshold ({self.min_opportunity_score}) but trading anyway (manually selected)")
             # Sort by score
             opportunities.sort(key=lambda x: x['score'], reverse=True)
         else:

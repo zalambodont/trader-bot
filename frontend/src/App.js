@@ -5,6 +5,9 @@ import PairSearch from './components/PairSearch';
 import MarketScanner from './components/MarketScanner';
 import ActivePositions from './components/ActivePositions';
 import { createLoggedAxios, setLoggingEnabled, isLoggingEnabled } from './apiLogger';
+import { ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+import { showSuccess, showError, showWarning, showInfo, showConfirm } from './utils/toast';
 
 // Setup comprehensive API logging
 createLoggedAxios(axios);
@@ -62,11 +65,11 @@ function App() {
 
   const toggleMode = () => {
     if (portfolioStats.running) {
-      alert('Cannot change mode while bot is running. Please stop trading first.');
+      showWarning('Cannot change mode while bot is running. Please stop trading first.');
       return;
     }
     // Mode will be set when starting trading in TradingSettings
-    alert('Mode will be set when you start trading. Use the trading settings to choose Paper or Live mode.');
+    showInfo('Mode will be set when you start trading. Use the trading settings to choose Paper or Live mode.');
   };
 
   const toggleLogging = () => {
@@ -77,30 +80,31 @@ function App() {
 
   const closeAllPositions = async () => {
     if (!portfolioStats.running) {
-      alert('Bot is not running. Please start trading first.');
+      showWarning('Bot is not running. Please start trading first.');
       return;
     }
 
     if (portfolioStats.positions_count === 0) {
-      alert('No open positions to close.');
+      showWarning('No open positions to close.');
       return;
     }
 
-    if (!window.confirm(`Close all ${portfolioStats.positions_count} positions and realize P&L of $${portfolioStats.total_unrealized_pnl.toFixed(2)}?`)) {
-      return;
-    }
-
-    try {
-      const response = await axios.post(`${API_URL}/api/multi-bot/stop`);
-      if (response.data.success) {
-        alert(`Closed all positions. Final P&L: $${portfolioStats.total_unrealized_pnl.toFixed(2)}`);
-        fetchPortfolioStats();
+    showConfirm(
+      `Close all ${portfolioStats.positions_count} positions and realize P&L of $${portfolioStats.total_unrealized_pnl.toFixed(2)}?`,
+      async () => {
+        try {
+          const response = await axios.post(`${API_URL}/api/multi-bot/stop`);
+          if (response.data.success) {
+            showSuccess(`Closed all positions. Final P&L: $${portfolioStats.total_unrealized_pnl.toFixed(2)}`);
+            fetchPortfolioStats();
+          }
+        } catch (error) {
+          console.error('Failed to close positions:', error);
+          const errorMsg = error.response?.data?.error || error.message || 'Unknown error';
+          showError(`Failed to close positions: ${errorMsg}`);
+        }
       }
-    } catch (error) {
-      console.error('Failed to close positions:', error);
-      const errorMsg = error.response?.data?.error || error.message || 'Unknown error';
-      alert(`Failed to close positions: ${errorMsg}`);
-    }
+    );
   };
 
   const handlePairSelect = (symbol) => {
@@ -121,6 +125,18 @@ function App() {
 
   return (
     <div className="App">
+      <ToastContainer
+        position="top-right"
+        autoClose={3000}
+        hideProgressBar={false}
+        newestOnTop={true}
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+        theme="dark"
+      />
       <header className="header">
         <div className="header-left">
           <h1>🚀 Crypto Market Scanner & Trading Bot</h1>

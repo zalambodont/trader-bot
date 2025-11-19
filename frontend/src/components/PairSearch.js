@@ -3,6 +3,7 @@ import axios from 'axios';
 import TradingSettings from './TradingSettings';
 import './PairSearch.css';
 import { logAIAnalysis, logWarning } from '../apiLogger';
+import { showSuccess, showError, showWarning } from '../utils/toast';
 
 const API_URL = 'http://localhost:5001';
 
@@ -47,7 +48,7 @@ function PairSearch({ selectedPairs, onPairSelect }) {
       }
     } catch (error) {
       console.error('✗ FAILED to fetch real Binance pairs:', error.message);
-      alert('ERROR: Cannot load Binance pairs. Check API server and try again.');
+      showError('ERROR: Cannot load Binance pairs. Check API server and try again.');
       setAllPairs([]);
     }
   };
@@ -129,7 +130,7 @@ function PairSearch({ selectedPairs, onPairSelect }) {
 
   const startTradingSelected = () => {
     if (selectedPairs.length === 0) {
-      alert('Please select at least one pair to trade');
+      showWarning('Please select at least one pair to trade');
       return;
     }
     setSinglePairToTrade(null);
@@ -166,11 +167,11 @@ function PairSearch({ selectedPairs, onPairSelect }) {
         setBotRunning(true);
         setShowSettings(false);
         setSinglePairToTrade(null);
-        alert(`Started trading ${pairsToTrade.length} pair${pairsToTrade.length !== 1 ? 's' : ''} with $${settings.totalCapital} total capital`);
+        showSuccess(`Started trading ${pairsToTrade.length} pair${pairsToTrade.length !== 1 ? 's' : ''} with $${settings.totalCapital} total capital`);
       }
     } catch (error) {
       console.error('Failed to start bot:', error);
-      alert('Failed to start trading: ' + error.message);
+      showError('Failed to start trading: ' + error.message);
     }
   };
 

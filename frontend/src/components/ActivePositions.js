@@ -3,6 +3,7 @@ import axios from 'axios';
 import { LineChart, Line, Tooltip, ResponsiveContainer } from 'recharts';
 import './ActivePositions.css';
 import { logAIAnalysis } from '../apiLogger';
+import { showSuccess, showError, showConfirm } from '../utils/toast';
 
 const API_URL = 'http://localhost:5001';
 
@@ -79,39 +80,41 @@ function ActivePositions() {
   };
 
   const handleStopTrading = async () => {
-    if (!window.confirm('Are you sure you want to stop trading? All open positions will be closed.')) {
-      return;
-    }
-
-    try {
-      await axios.post(`${API_URL}/api/multi-bot/stop`);
-      setIsRunning(false);
-      alert('Trading stopped successfully. All positions have been closed.');
-      fetchPositions();
-    } catch (error) {
-      console.error('Failed to stop trading:', error);
-      alert('Failed to stop trading. Please try again.');
-    }
+    showConfirm(
+      'Are you sure you want to stop trading? All open positions will be closed.',
+      async () => {
+        try {
+          await axios.post(`${API_URL}/api/multi-bot/stop`);
+          setIsRunning(false);
+          showSuccess('Trading stopped successfully. All positions have been closed.');
+          fetchPositions();
+        } catch (error) {
+          console.error('Failed to stop trading:', error);
+          showError('Failed to stop trading. Please try again.');
+        }
+      }
+    );
   };
 
   const handleClosePosition = async (symbol) => {
-    if (!window.confirm(`Are you sure you want to close the position for ${symbol}?`)) {
-      return;
-    }
+    showConfirm(
+      `Are you sure you want to close the position for ${symbol}?`,
+      async () => {
+        try {
+          const response = await axios.post(`${API_URL}/api/multi-bot/close-position`, {
+            symbol: symbol
+          });
 
-    try {
-      const response = await axios.post(`${API_URL}/api/multi-bot/close-position`, {
-        symbol: symbol
-      });
-
-      if (response.data.success) {
-        alert(`Position closed for ${symbol}`);
-        fetchPositions(); // Refresh positions
+          if (response.data.success) {
+            showSuccess(`Position closed for ${symbol}`);
+            fetchPositions(); // Refresh positions
+          }
+        } catch (error) {
+          console.error(`Failed to close position for ${symbol}:`, error);
+          showError(`Failed to close position for ${symbol}. ${error.response?.data?.error || error.message}`);
+        }
       }
-    } catch (error) {
-      console.error(`Failed to close position for ${symbol}:`, error);
-      alert(`Failed to close position for ${symbol}. ${error.response?.data?.error || error.message}`);
-    }
+    );
   };
 
   const getPnLColor = (pnl) => {

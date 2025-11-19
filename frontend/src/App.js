@@ -131,13 +131,16 @@ function App() {
           >
             {portfolioStats.mode.toUpperCase()} MODE
           </span>
-          <button
-            className={`logger-toggle ${loggingEnabled ? 'enabled' : 'disabled'}`}
-            onClick={toggleLogging}
-            title={`Click to ${loggingEnabled ? 'disable' : 'enable'} console logging`}
-          >
-            {loggingEnabled ? '📝 Console Logging ON' : '🔇 Console Logging OFF'}
-          </button>
+          <div className="toggle-switch-container" title="Console Logging">
+            <label className="toggle-switch">
+              <input
+                type="checkbox"
+                checked={loggingEnabled}
+                onChange={toggleLogging}
+              />
+              <span className="toggle-slider"></span>
+            </label>
+          </div>
         </div>
 
         {portfolioStats.running && (

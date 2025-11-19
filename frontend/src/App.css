@@ -95,39 +95,67 @@
   animation: pulse 2s infinite;
 }
 
-.logger-toggle {
-  padding: 0.5rem 1rem;
-  border-radius: 20px;
-  font-weight: 600;
-  font-size: 0.85rem;
-  border: 2px solid transparent;
+/* Toggle Switch */
+.toggle-switch-container {
+  display: inline-block;
+  position: relative;
+}
+
+.toggle-switch {
+  position: relative;
+  display: inline-block;
+  width: 50px;
+  height: 26px;
   cursor: pointer;
-  transition: all 0.3s;
-  text-transform: uppercase;
 }
 
-.logger-toggle.enabled {
-  background: #10b981;
-  color: white;
-  border-color: #059669;
+.toggle-switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
 }
 
-.logger-toggle.enabled:hover {
-  background: #059669;
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4);
+.toggle-slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #6b7280;
+  transition: 0.3s;
+  border-radius: 26px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
 }
 
-.logger-toggle.disabled {
-  background: #6b7280;
-  color: white;
-  border-color: #4b5563;
+.toggle-slider:before {
+  position: absolute;
+  content: "";
+  height: 20px;
+  width: 20px;
+  left: 3px;
+  bottom: 3px;
+  background-color: white;
+  transition: 0.3s;
+  border-radius: 50%;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
 }
 
-.logger-toggle.disabled:hover {
-  background: #4b5563;
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(75, 85, 99, 0.4);
+.toggle-switch input:checked + .toggle-slider {
+  background-color: #10b981;
+  box-shadow: 0 2px 8px rgba(16, 185, 129, 0.4);
+}
+
+.toggle-switch input:checked + .toggle-slider:before {
+  transform: translateX(24px);
+}
+
+.toggle-switch:hover .toggle-slider {
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+}
+
+.toggle-switch input:checked:hover + .toggle-slider {
+  background-color: #059669;
 }
 
 .close-all-btn {

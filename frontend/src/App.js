@@ -131,7 +131,7 @@ function App() {
           >
             {portfolioStats.mode.toUpperCase()} MODE
           </span>
-          <div className="toggle-switch-container" title="Console Logging">
+          <div className="toggle-switch-container">
             <label className="toggle-switch">
               <input
                 type="checkbox"
@@ -140,6 +140,7 @@ function App() {
               />
               <span className="toggle-slider"></span>
             </label>
+            <span className="toggle-tooltip">Console Logging</span>
           </div>
         </div>
 

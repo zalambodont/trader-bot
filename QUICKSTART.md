@@ -123,8 +123,8 @@ The AI advisor uses GPT-4 to validate trades. This is **optional** - the bot wor
 
 ```bash
 # If you have git installed:
-git clone <repository-url>
-cd Screening
+git clone https://github.com/zalambodont/trader-bot/
+cd trader-bot
 
 # OR if you downloaded a ZIP file:
 # Unzip it and open Terminal/Command Prompt in that folder

@@ -492,13 +492,32 @@ def get_pairs():
 
 @app.route('/api/multi-bot/start', methods=['POST'])
 def start_multi_bot():
-    """Start multi-pair trading bot"""
+    """Start multi-pair trading bot or add pairs to existing bot"""
     try:
-        if multi_pair_state['running']:
-            return jsonify({'error': 'Multi-pair bot already running'}), 400
+        data = request.json or {}
+        new_pairs = data.get('selected_pairs', [])
+
+        # If bot is already running, add new pairs to it
+        if multi_pair_state['running'] and multi_pair_state['bot']:
+            # Add new pairs to the bot's selected pairs list
+            added_count = 0
+            for pair in new_pairs:
+                if pair not in multi_pair_state['bot'].selected_pairs:
+                    multi_pair_state['bot'].selected_pairs.append(pair)
+                    added_count += 1
+                    print(f"Added {pair} to trading bot")
+
+            # Force immediate scan if new pairs were added
+            if added_count > 0:
+                multi_pair_state['bot'].force_scan()
+
+            return jsonify({
+                'success': True,
+                'message': f'Added {added_count} pair(s) to existing bot',
+                'selected_pairs': multi_pair_state['bot'].selected_pairs
+            })
 
         # Create config from request or use defaults
-        data = request.json or {}
         config = {
             'QUOTE_CURRENCY': data.get('quote_currency', 'USDT'),
             'MIN_VOLUME_USDT': data.get('min_volume', 1000000),
@@ -513,7 +532,7 @@ def start_multi_bot():
             'STOP_LOSS_PCT': data.get('stop_loss_pct', 0.02),
             'TAKE_PROFIT_PCT': data.get('take_profit_pct', 0.04),
             'RISK_PER_TRADE': 0.02,
-            'selected_pairs': data.get('selected_pairs', [])
+            'selected_pairs': new_pairs
         }
 
         multi_pair_state['bot'] = MultiPairBot(config)

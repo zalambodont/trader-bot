@@ -131,7 +131,7 @@ function MarketScanner() {
       if (response.data.success) {
         setShowSettings(false);
         setSinglePairToTrade(null);
-        showSuccess(`Started trading ${pairsToTrade.length} pair${pairsToTrade.length !== 1 ? 's' : ''} with $${settings.totalCapital} total capital`);
+        showSuccess(response.data.message || `Started trading ${pairsToTrade.length} pair${pairsToTrade.length !== 1 ? 's' : ''}`);
         checkBotStatus(); // Refresh active positions
       }
     } catch (error) {

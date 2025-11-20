@@ -374,6 +374,12 @@ class MultiPairBot:
                 print(f"   ⏳ {symbol} added to cooldown for {cooldown_min:.0f} minutes (loss detected)")
                 logger.info(f"{symbol} added to cooldown for {cooldown_min:.0f} minutes due to loss")
 
+    def force_scan(self):
+        """Force an immediate market scan (used when pairs are added dynamically)"""
+        print("\n🔄 FORCING IMMEDIATE SCAN (new pairs added)")
+        logger.info("Forcing immediate scan due to new pairs added")
+        self.last_scan_time = 0  # Reset to trigger immediate scan on next cycle
+
     def run_cycle(self):
         """Run one complete bot cycle"""
         # Update existing positions

@@ -1,7 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import axios from 'axios';
 import './TradingSettings.css';
 
-function TradingSettings({ isOpen, onClose, onStart, initialSettings }) {
+const API_URL = 'http://localhost:5001';
+
+function TradingSettings({ isOpen, onClose, onStart, initialSettings, pairData }) {
   const [settings, setSettings] = useState({
     totalCapital: initialSettings?.totalCapital || 10000,
     maxPositions: 1, // Always 1 since we trade one pair at a time
@@ -9,8 +12,48 @@ function TradingSettings({ isOpen, onClose, onStart, initialSettings }) {
     takeProfitPct: initialSettings?.takeProfitPct || 4,
     scanInterval: initialSettings?.scanInterval || 60,
     minScore: initialSettings?.minScore || 60,
-    tradingMode: initialSettings?.tradingMode || 'paper'
+    tradingMode: initialSettings?.tradingMode || 'paper',
+    leverage: initialSettings?.leverage || 1,
+    direction: initialSettings?.direction || 'LONG'
   });
+
+  const [aiSuggestion, setAiSuggestion] = useState(null);
+  const [loadingAiSuggestion, setLoadingAiSuggestion] = useState(false);
+  const [unsafeMode, setUnsafeMode] = useState(false);
+
+  // Fetch AI direction suggestion when modal opens with pair data
+  useEffect(() => {
+    if (isOpen && pairData) {
+      fetchAiDirectionSuggestion();
+    }
+  }, [isOpen, pairData]);
+
+  const fetchAiDirectionSuggestion = async () => {
+    if (!pairData?.symbol) return;
+
+    setLoadingAiSuggestion(true);
+    try {
+      const response = await axios.post(`${API_URL}/api/ai/suggest-direction`, {
+        symbol: pairData.symbol,
+        opportunity: pairData
+      });
+
+      if (response.data.success) {
+        setAiSuggestion(response.data.suggestion);
+        // Auto-select AI suggested direction
+        if (response.data.suggestion?.direction) {
+          setSettings(prev => ({
+            ...prev,
+            direction: response.data.suggestion.direction
+          }));
+        }
+      }
+    } catch (error) {
+      console.error('Failed to get AI direction suggestion:', error);
+    } finally {
+      setLoadingAiSuggestion(false);
+    }
+  };
 
   const handleChange = (field, value) => {
     // Prevent NaN values
@@ -59,7 +102,88 @@ function TradingSettings({ isOpen, onClose, onStart, initialSettings }) {
           </div>
 
           <div className="settings-section">
+            <h3>Position Settings</h3>
+
+            <div className="form-group">
+              <label>Position Direction</label>
+              <div className="direction-selector">
+                <button
+                  type="button"
+                  className={`direction-btn long ${settings.direction === 'LONG' ? 'active' : ''}`}
+                  onClick={() => handleChange('direction', 'LONG')}
+                >
+                  LONG
+                </button>
+                <button
+                  type="button"
+                  className={`direction-btn short ${settings.direction === 'SHORT' ? 'active' : ''}`}
+                  onClick={() => handleChange('direction', 'SHORT')}
+                >
+                  SHORT
+                </button>
+              </div>
+              {loadingAiSuggestion && (
+                <div className="ai-suggestion-loading">
+                  <span className="loading-spinner-small"></span> AI analyzing direction...
+                </div>
+              )}
+              {aiSuggestion && !loadingAiSuggestion && (
+                <div className={`ai-suggestion-box ${aiSuggestion.direction === 'LONG' ? 'long' : 'short'}`}>
+                  <div className="ai-suggestion-header">
+                    <span className="ai-icon">🤖</span> AI Suggestion: <strong>{aiSuggestion.direction}</strong>
+                    <span className="ai-confidence">({(aiSuggestion.confidence * 100).toFixed(0)}% confident)</span>
+                  </div>
+                  <div className="ai-suggestion-reasoning">{aiSuggestion.reasoning}</div>
+                </div>
+              )}
+              <span className="help-text">LONG = profit when price goes up, SHORT = profit when price goes down</span>
+            </div>
+
+            <div className="form-group">
+              <label>Leverage: {settings.leverage}x</label>
+              <input
+                type="range"
+                min="1"
+                max="20"
+                step="1"
+                value={settings.leverage}
+                onChange={(e) => handleChange('leverage', parseInt(e.target.value))}
+                className="leverage-slider"
+              />
+              <div className="leverage-labels">
+                <span>1x</span>
+                <span>5x</span>
+                <span>10x</span>
+                <span>15x</span>
+                <span>20x</span>
+              </div>
+              {settings.leverage > 5 && (
+                <div className="warning-box">
+                  ⚠️ High leverage ({settings.leverage}x) significantly increases risk!
+                </div>
+              )}
+              <span className="help-text">Higher leverage = higher risk & reward. Effective capital: ${(settings.totalCapital * settings.leverage).toLocaleString()}</span>
+            </div>
+          </div>
+
+          <div className="settings-section">
             <h3>Risk Management</h3>
+
+            <div className="form-group">
+              <label className="toggle-label">
+                <span>Unsafe Mode</span>
+                <div className={`toggle-switch ${unsafeMode ? 'active' : ''}`} onClick={() => setUnsafeMode(!unsafeMode)}>
+                  <div className="toggle-slider"></div>
+                </div>
+              </label>
+              {unsafeMode && (
+                <div className="warning-box danger">
+                  ⚠️ UNSAFE MODE: No limits on stop loss/take profit. You can lose 100% of your position!
+                </div>
+              )}
+              <span className="help-text">Enable to remove stop loss and take profit limits</span>
+            </div>
+
             <div className="form-group">
               <label>Minimum Opportunity Score</label>
               <input
@@ -78,12 +202,12 @@ function TradingSettings({ isOpen, onClose, onStart, initialSettings }) {
                 type="number"
                 value={settings.stopLossPct}
                 onChange={(e) => handleChange('stopLossPct', parseFloat(e.target.value) || 0)}
-                min="0.5"
-                max="10"
+                min="0.1"
+                max={unsafeMode ? 100 : 10}
                 step="0.5"
                 required
               />
-              <span className="help-text">Exit position if price drops by this %</span>
+              <span className="help-text">Exit position if price drops by this % {unsafeMode ? '(unlimited)' : '(max 10%)'}</span>
             </div>
 
             <div className="form-group">
@@ -92,12 +216,12 @@ function TradingSettings({ isOpen, onClose, onStart, initialSettings }) {
                 type="number"
                 value={settings.takeProfitPct}
                 onChange={(e) => handleChange('takeProfitPct', parseFloat(e.target.value) || 0)}
-                min="0.5"
-                max="20"
+                min="0.1"
+                max={unsafeMode ? 1000 : 20}
                 step="0.5"
                 required
               />
-              <span className="help-text">Exit position if price rises by this %</span>
+              <span className="help-text">Exit position if price rises by this % {unsafeMode ? '(unlimited)' : '(max 20%)'}</span>
             </div>
           </div>
 

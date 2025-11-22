@@ -188,6 +188,135 @@ Signals Detected:
 
         return result
 
+    def suggest_direction(self, opportunity):
+        """
+        Suggest LONG or SHORT direction for a trading opportunity
+
+        Args:
+            opportunity: Dict containing opportunity details
+
+        Returns:
+            dict: {
+                'direction': 'LONG' or 'SHORT',
+                'confidence': float (0-1),
+                'reasoning': str
+            }
+        """
+        if not self.client:
+            # Fallback to technical analysis if AI is disabled
+            direction = opportunity.get('direction', 'LONG')
+            if not direction or direction == 'NEUTRAL':
+                # Use RSI to suggest direction
+                rsi = opportunity.get('rsi', 50)
+                if rsi < 40:
+                    direction = 'LONG'
+                elif rsi > 60:
+                    direction = 'SHORT'
+                else:
+                    direction = 'LONG'  # Default to LONG
+
+            return {
+                'direction': direction,
+                'confidence': 0.5,
+                'reasoning': f'Technical analysis suggests {direction} based on RSI ({opportunity.get("rsi", "N/A")}) and market signals. (AI disabled)'
+            }
+
+        try:
+            # Prepare market context
+            context = self._prepare_market_context(opportunity)
+
+            # Get AI recommendation for direction
+            response = self.client.chat.completions.create(
+                model="gpt-4-turbo-preview",
+                messages=[
+                    {
+                        "role": "system",
+                        "content": """You are an expert cryptocurrency trading advisor. Based on technical indicators and market data,
+                        determine whether a LONG (buy) or SHORT (sell) position would be more profitable.
+                        Be decisive - you must choose one direction. Consider RSI, MACD, price trends, and volatility."""
+                    },
+                    {
+                        "role": "user",
+                        "content": f"""Analyze this trading opportunity and recommend a direction:
+
+{context}
+
+Provide your recommendation in this exact format:
+DIRECTION: LONG or SHORT
+CONFIDENCE: [0-100]%
+REASONING: [Brief explanation of why this direction is recommended]
+
+Be specific about which indicators support your recommendation."""
+                    }
+                ],
+                temperature=0.3,
+                max_tokens=300
+            )
+
+            # Parse AI response
+            ai_response = response.choices[0].message.content
+            return self._parse_direction_response(ai_response, opportunity)
+
+        except Exception as e:
+            error_msg = str(e)
+            logger.error(f"AI direction suggestion failed: {error_msg}")
+
+            # Fallback to technical signals
+            direction = opportunity.get('direction', 'LONG')
+            if not direction or direction == 'NEUTRAL':
+                direction = 'LONG'
+
+            return {
+                'direction': direction,
+                'confidence': 0.5,
+                'reasoning': f'AI analysis unavailable ({error_msg[:50]}...). Using technical direction: {direction}'
+            }
+
+    def _parse_direction_response(self, response_text, opportunity):
+        """Parse AI direction response into structured format"""
+        if not response_text or not response_text.strip():
+            return {
+                'direction': opportunity.get('direction', 'LONG') or 'LONG',
+                'confidence': 0.5,
+                'reasoning': 'AI returned empty response, using technical direction'
+            }
+
+        lines = response_text.strip().split('\n')
+        result = {
+            'direction': opportunity.get('direction', 'LONG') or 'LONG',
+            'confidence': 0.5,
+            'reasoning': ''
+        }
+
+        for line in lines:
+            line = line.strip()
+
+            if line.startswith('DIRECTION:'):
+                direction_text = line.split(':')[1].strip().upper()
+                if 'LONG' in direction_text:
+                    result['direction'] = 'LONG'
+                elif 'SHORT' in direction_text:
+                    result['direction'] = 'SHORT'
+
+            elif line.startswith('CONFIDENCE:'):
+                try:
+                    conf_str = line.split(':')[1].strip().replace('%', '')
+                    result['confidence'] = float(conf_str) / 100
+                except Exception:
+                    pass
+
+            elif line.startswith('REASONING:'):
+                try:
+                    result['reasoning'] = line.split(':', 1)[1].strip()
+                except Exception:
+                    pass
+
+        # If no reasoning was found, use full response
+        if not result['reasoning']:
+            result['reasoning'] = response_text[:200]
+
+        return result
+
     def batch_analyze_opportunities(self, opportunities, max_analyze=10):
         """
         Analyze multiple opportunities in batch

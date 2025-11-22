@@ -49,7 +49,7 @@ class PortfolioManager:
 
         return True
 
-    def calculate_position_size(self, symbol, price, direction, risk_amount=None):
+    def calculate_position_size(self, symbol, price, direction, risk_amount=None, leverage=1):
         """
         Calculate position size for a trade
 
@@ -58,6 +58,7 @@ class PortfolioManager:
             price: Entry price
             direction: 'LONG' or 'SHORT'
             risk_amount: Amount to risk (if None, uses max_allocation)
+            leverage: Leverage multiplier (default 1x)
 
         Returns:
             dict with quantity and value
@@ -73,16 +74,20 @@ class PortfolioManager:
         # Don't use more than available
         capital_to_use = min(capital_to_use, available)
 
-        # Calculate quantity
-        quantity = capital_to_use / price
+        # Calculate quantity with leverage
+        # Leverage allows controlling larger position with same capital
+        effective_capital = capital_to_use * leverage
+        quantity = effective_capital / price
 
         return {
             'quantity': quantity,
-            'value': capital_to_use,
-            'price': price
+            'value': capital_to_use,  # Actual capital used (margin)
+            'effective_value': effective_capital,  # Position value with leverage
+            'price': price,
+            'leverage': leverage
         }
 
-    def open_position(self, symbol, direction, entry_price, quantity, stop_loss=None, take_profit=None, ai_analysis=None, opportunity_data=None):
+    def open_position(self, symbol, direction, entry_price, quantity, stop_loss=None, take_profit=None, ai_analysis=None, opportunity_data=None, leverage=1):
         """
         Open a new position
 
@@ -95,6 +100,7 @@ class PortfolioManager:
             take_profit: Take profit price (optional)
             ai_analysis: AI analysis data (optional)
             opportunity_data: Additional opportunity data (optional)
+            leverage: Leverage multiplier (default 1x)
 
         Returns:
             Position info or None if failed
@@ -102,7 +108,10 @@ class PortfolioManager:
         if not self.can_open_position(symbol):
             return None
 
+        # Position value is the full leveraged value
         position_value = entry_price * quantity
+        # Margin is the actual capital used (position_value / leverage)
+        margin_used = position_value / leverage if leverage > 0 else position_value
 
         position = {
             'symbol': symbol,
@@ -111,6 +120,8 @@ class PortfolioManager:
             'current_price': entry_price,
             'quantity': quantity,
             'position_value': position_value,
+            'margin_used': margin_used,
+            'leverage': leverage,
             'stop_loss': stop_loss,
             'take_profit': take_profit,
             'unrealized_pnl': 0,
@@ -129,10 +140,11 @@ class PortfolioManager:
             position['opportunity_signals'] = opportunity_data.get('signals')
 
         self.positions[symbol] = position
-        self.reserved_capital += position_value
+        # Reserve only the margin (actual capital), not the leveraged value
+        self.reserved_capital += margin_used
 
         logger.info(f"Opened {direction} position for {symbol} at ${entry_price:.8f}, "
-                   f"qty: {quantity:.8f}, value: ${position_value:.2f}")
+                   f"qty: {quantity:.8f}, leverage: {leverage}x, margin: ${margin_used:.2f}, value: ${position_value:.2f}")
 
         return position
 
@@ -143,6 +155,8 @@ class PortfolioManager:
 
         position = self.positions[symbol]
         position['current_price'] = current_price
+        leverage = position.get('leverage', 1)
+        margin_used = position.get('margin_used', position['position_value'])
 
         # Calculate unrealized P&L
         if position['direction'] == 'LONG':
@@ -151,7 +165,9 @@ class PortfolioManager:
             pnl = (position['entry_price'] - current_price) * position['quantity']
 
         position['unrealized_pnl'] = pnl
-        position['unrealized_pnl_pct'] = (pnl / position['position_value']) * 100
+        # P&L percentage is calculated based on margin used (actual capital), not position value
+        # This gives the actual return on invested capital with leverage
+        position['unrealized_pnl_pct'] = (pnl / margin_used) * 100 if margin_used > 0 else 0
 
         # Check stop loss / take profit
         should_close = False
@@ -193,6 +209,8 @@ class PortfolioManager:
             return None
 
         position = self.positions[symbol]
+        margin_used = position.get('margin_used', position['position_value'])
+        leverage = position.get('leverage', 1)
 
         # Calculate realized P&L
         if position['direction'] == 'LONG':
@@ -200,11 +218,13 @@ class PortfolioManager:
         else:  # SHORT
             pnl = (position['entry_price'] - exit_price) * position['quantity']
 
-        pnl_pct = (pnl / position['position_value']) * 100
+        # P&L percentage based on actual margin used
+        pnl_pct = (pnl / margin_used) * 100 if margin_used > 0 else 0
 
-        # Update balance
+        # Update balance with actual P&L
         self.balance += pnl
-        self.reserved_capital -= position['position_value']
+        # Release the margin (actual capital used)
+        self.reserved_capital -= margin_used
 
         # Create trade record
         trade = {
@@ -213,6 +233,8 @@ class PortfolioManager:
             'entry_price': position['entry_price'],
             'exit_price': exit_price,
             'quantity': position['quantity'],
+            'leverage': leverage,
+            'margin_used': margin_used,
             'pnl': pnl,
             'pnl_pct': pnl_pct,
             'entry_time': position['entry_time'],

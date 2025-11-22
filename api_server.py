@@ -490,6 +490,38 @@ def get_pairs():
         })
 
 
+@app.route('/api/ai/suggest-direction', methods=['POST'])
+def suggest_direction():
+    """Get AI suggestion for LONG/SHORT direction"""
+    try:
+        data = request.get_json()
+        opportunity = data.get('opportunity')
+
+        if not opportunity:
+            return jsonify({
+                'success': False,
+                'error': 'Opportunity data is required'
+            }), 400
+
+        # Initialize AI advisor if needed
+        if not multi_pair_state['ai_advisor']:
+            multi_pair_state['ai_advisor'] = AITradingAdvisor()
+
+        # Get direction suggestion
+        suggestion = multi_pair_state['ai_advisor'].suggest_direction(opportunity)
+
+        return jsonify({
+            'success': True,
+            'suggestion': suggestion
+        })
+
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+
 @app.route('/api/multi-bot/start', methods=['POST'])
 def start_multi_bot():
     """Start multi-pair trading bot or add pairs to existing bot"""
@@ -532,7 +564,9 @@ def start_multi_bot():
             'STOP_LOSS_PCT': data.get('stop_loss_pct', 0.02),
             'TAKE_PROFIT_PCT': data.get('take_profit_pct', 0.04),
             'RISK_PER_TRADE': 0.02,
-            'selected_pairs': new_pairs
+            'selected_pairs': new_pairs,
+            'LEVERAGE': data.get('leverage', 1),
+            'FORCED_DIRECTION': data.get('direction', None)
         }
 
         multi_pair_state['bot'] = MultiPairBot(config)

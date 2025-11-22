@@ -17,6 +17,7 @@ function PairSearch() {
   const [activePositions, setActivePositions] = useState([]);
   const [isPairsCollapsed, setIsPairsCollapsed] = useState(false);
   const [singlePairToTrade, setSinglePairToTrade] = useState(null);
+  const [pairDataForSettings, setPairDataForSettings] = useState(null);
 
   useEffect(() => {
     fetchAllPairs();
@@ -133,8 +134,9 @@ function PairSearch() {
     return '#888';
   };
 
-  const startTradingSinglePair = (pairSymbol) => {
+  const startTradingSinglePair = (pairSymbol, pairData) => {
     setSinglePairToTrade(pairSymbol);
+    setPairDataForSettings(pairData);
     setShowSettings(true);
   };
 
@@ -156,7 +158,9 @@ function PairSearch() {
         timeframe: '15m',
         stop_loss_pct: settings.stopLossPct / 100,
         take_profit_pct: settings.takeProfitPct / 100,
-        selected_pairs: pairsToTrade
+        selected_pairs: pairsToTrade,
+        leverage: settings.leverage,
+        direction: settings.direction
       });
 
       if (response.data.success) {
@@ -377,7 +381,7 @@ function PairSearch() {
                     className="trade-single-pair-btn"
                     onClick={(e) => {
                       e.stopPropagation();
-                      startTradingSinglePair(pair.symbol);
+                      startTradingSinglePair(pair.symbol, pair);
                     }}
                     disabled={activePositions.some(pos => pos.symbol === pair.symbol)}
                   >
@@ -399,8 +403,12 @@ function PairSearch() {
 
       <TradingSettings
         isOpen={showSettings}
-        onClose={() => setShowSettings(false)}
+        onClose={() => {
+          setShowSettings(false);
+          setPairDataForSettings(null);
+        }}
         onStart={handleStartTrading}
+        pairData={pairDataForSettings}
       />
     </div>
   );

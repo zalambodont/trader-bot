@@ -54,6 +54,8 @@ class MultiPairBot:
         self.stop_loss_pct = config.get('STOP_LOSS_PCT', 0.02)
         self.take_profit_pct = config.get('TAKE_PROFIT_PCT', 0.04)
         self.use_ai = config.get('USE_AI', True)  # Enable AI by default
+        self.leverage = config.get('LEVERAGE', 1)  # Default 1x leverage
+        self.forced_direction = config.get('FORCED_DIRECTION', None)  # User-specified direction
 
         self.last_scan_time = 0
         self.scan_count = 0
@@ -138,8 +140,12 @@ class MultiPairBot:
         if is_manual_selection:
             print(f"\n🎯 MANUAL SELECTION: {symbol}")
             logger.info(f"✓ MANUAL SELECTION: {symbol}")
-            # Ensure it has a direction for trade execution
-            if not opportunity['direction']:
+            # Use forced direction if set by user, otherwise use technical direction or default to LONG
+            if self.forced_direction:
+                opportunity['direction'] = self.forced_direction
+                print(f"   ➤ Using user-specified direction: {self.forced_direction}")
+                logger.info(f"  Using user-specified direction: {self.forced_direction}")
+            elif not opportunity['direction']:
                 # Force a direction based on price momentum or just default to LONG
                 opportunity['direction'] = 'LONG'
                 print(f"   ➤ Setting default direction: LONG")
@@ -214,11 +220,12 @@ class MultiPairBot:
         price = opportunity['price']
         direction = opportunity['direction']
 
-        # Calculate position size
+        # Calculate position size with leverage
         position_size = self.portfolio.calculate_position_size(
             symbol=symbol,
             price=price,
-            direction=direction
+            direction=direction,
+            leverage=self.leverage
         )
 
         # Calculate stop loss and take profit
@@ -237,7 +244,8 @@ class MultiPairBot:
             'stop_loss': stop_loss,
             'take_profit': take_profit,
             'score': opportunity['score'],
-            'signals': opportunity['signals']
+            'signals': opportunity['signals'],
+            'leverage': self.leverage
         }
 
         # Include AI analysis if it exists
@@ -258,10 +266,13 @@ class MultiPairBot:
         """
         symbol = params['symbol']
 
+        leverage = params.get('leverage', 1)
+
         print("\n" + "="*80)
         print(f"💰 EXECUTING TRADE: {symbol}")
         print("="*80)
         print(f"   Direction:    {params['direction']}")
+        print(f"   Leverage:     {leverage}x")
         print(f"   Entry Price:  ${params['entry_price']:.8f}")
         print(f"   Quantity:     {params['quantity']:.8f}")
         print(f"   Stop Loss:    ${params['stop_loss']:.8f} (-{((params['entry_price'] - params['stop_loss']) / params['entry_price'] * 100):.1f}%)")
@@ -273,6 +284,7 @@ class MultiPairBot:
         logger.info(f"\n{'='*60}")
         logger.info(f"EXECUTING TRADE: {symbol}")
         logger.info(f"Direction: {params['direction']}")
+        logger.info(f"Leverage: {leverage}x")
         logger.info(f"Entry: ${params['entry_price']:.8f}")
         logger.info(f"Quantity: {params['quantity']:.8f}")
         logger.info(f"Stop Loss: ${params['stop_loss']:.8f}")
@@ -291,7 +303,8 @@ class MultiPairBot:
                 stop_loss=params['stop_loss'],
                 take_profit=params['take_profit'],
                 ai_analysis=params.get('ai_analysis'),
-                opportunity_data=params
+                opportunity_data=params,
+                leverage=leverage
             )
             return position
 

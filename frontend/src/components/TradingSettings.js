@@ -7,7 +7,7 @@ const API_URL = 'http://localhost:5001';
 function TradingSettings({ isOpen, onClose, onStart, initialSettings, pairData }) {
   const [settings, setSettings] = useState({
     totalCapital: initialSettings?.totalCapital || 10000,
-    maxPositions: 1, // Always 1 since we trade one pair at a time
+    maxPositions: 999, // Unlimited positions - each trade is independent
     stopLossPct: initialSettings?.stopLossPct || 2,
     takeProfitPct: initialSettings?.takeProfitPct || 4,
     scanInterval: initialSettings?.scanInterval || 60,

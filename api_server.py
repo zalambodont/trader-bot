@@ -555,7 +555,7 @@ def start_multi_bot():
             'MIN_VOLUME_USDT': data.get('min_volume', 1000000),
             'MAX_PAIRS_TO_SCAN': data.get('max_pairs', 100),
             'INITIAL_BALANCE': data.get('initial_balance', 10000),
-            'MAX_POSITIONS': data.get('max_positions', 5),
+            'MAX_POSITIONS': data.get('max_positions', 999),  # Unlimited - each trade is independent
             'MAX_ALLOCATION_PER_TRADE': data.get('max_allocation', 0.20),
             'SCAN_INTERVAL': data.get('scan_interval', 300),
             'MIN_OPPORTUNITY_SCORE': data.get('min_score', 65),

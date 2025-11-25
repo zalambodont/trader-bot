@@ -39,9 +39,10 @@ class PortfolioManager:
             logger.warning(f"Position already open for {symbol}")
             return False
 
-        if len(self.positions) >= self.max_positions:
-            logger.warning(f"Max positions reached ({self.max_positions})")
-            return False
+        # No max positions limit - each trade is treated independently
+        # if len(self.positions) >= self.max_positions:
+        #     logger.warning(f"Max positions reached ({self.max_positions})")
+        #     return False
 
         if self.get_available_capital() < self.balance * 0.1:
             logger.warning("Insufficient available capital")

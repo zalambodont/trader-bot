@@ -170,15 +170,15 @@
   font-weight: bold;
 }
 
-/* Toggle Switch */
-.toggle-label {
+/* Toggle Switch - scoped to settings modal */
+.settings-form .toggle-label {
   display: flex;
   align-items: center;
   justify-content: space-between;
   cursor: pointer;
 }
 
-.toggle-switch {
+.settings-form .toggle-switch {
   width: 50px;
   height: 26px;
   background: #16213e;
@@ -189,12 +189,12 @@
   border: 2px solid #667eea;
 }
 
-.toggle-switch.active {
+.settings-form .toggle-switch.active {
   background: #ff4444;
   border-color: #ff0000;
 }
 
-.toggle-slider {
+.settings-form .toggle-slider {
   width: 20px;
   height: 20px;
   background: #fff;
@@ -205,7 +205,11 @@
   transition: all 0.3s;
 }
 
-.toggle-switch.active .toggle-slider {
+.settings-form .toggle-slider:before {
+  display: none;
+}
+
+.settings-form .toggle-switch.active .toggle-slider {
   left: 26px;
 }
 

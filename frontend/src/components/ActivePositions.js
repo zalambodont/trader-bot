@@ -4,7 +4,8 @@ import { LineChart, Line, Tooltip, ResponsiveContainer } from 'recharts';
 import './ActivePositions.css';
 import { showSuccess, showError, showConfirm } from '../utils/toast';
 
-const API_URL = 'http://localhost:5001';
+// Use same hostname as frontend but with API port
+const API_URL = `http://${window.location.hostname}:5001`;
 
 function ActivePositions() {
   const [positions, setPositions] = useState([]);

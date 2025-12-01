@@ -5,7 +5,8 @@ import './PairSearch.css';
 import { logAIAnalysis, logWarning } from '../apiLogger';
 import { showSuccess, showError } from '../utils/toast';
 
-const API_URL = 'http://localhost:5001';
+// Use same hostname as frontend but with API port
+const API_URL = `http://${window.location.hostname}:5001`;
 
 function PairSearch() {
   const [searchQuery, setSearchQuery] = useState('');

@@ -12,7 +12,8 @@ import { showSuccess, showError, showWarning, showInfo, showConfirm } from './ut
 // Setup comprehensive API logging
 createLoggedAxios(axios);
 
-const API_URL = 'http://localhost:5001';
+// Use same hostname as frontend but with API port
+const API_URL = `http://${window.location.hostname}:5001`;
 
 // Log initialization
 console.log('%c═══════════════════════════════════════', 'color: #00ff00; font-weight: bold;');

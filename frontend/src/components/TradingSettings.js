@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import './TradingSettings.css';
 
-const API_URL = 'http://localhost:5001';
+// Use same hostname as frontend but with API port
+const API_URL = `http://${window.location.hostname}:5001`;
 
 function TradingSettings({ isOpen, onClose, onStart, initialSettings, pairData }) {
   const [settings, setSettings] = useState({

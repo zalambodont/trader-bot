@@ -303,7 +303,7 @@ def trigger_scan():
             multi_pair_state['scanner'] = MarketScanner(
                 quote_currency='USDT',
                 min_volume_usdt=1000000,
-                max_pairs=100
+                max_pairs=500
             )
 
         if not multi_pair_state['ai_advisor']:
@@ -311,21 +311,7 @@ def trigger_scan():
 
         opportunities = multi_pair_state['scanner'].scan_market(min_score=min_score)
 
-        # Add AI analysis to each opportunity
-        for opp in opportunities:
-            try:
-                ai_analysis = multi_pair_state['ai_advisor'].analyze_opportunity(opp)
-                opp['ai_analysis'] = ai_analysis
-                # Log if reasoning is missing or is an error
-                if 'reasoning' in ai_analysis:
-                    if ai_analysis['reasoning'].startswith('Error:'):
-                        print(f"⚠️  AI Error for {opp['symbol']}: {ai_analysis['reasoning']}")
-                    elif not ai_analysis['reasoning'] or len(ai_analysis['reasoning']) < 10:
-                        print(f"⚠️  AI returned short/empty reasoning for {opp['symbol']}")
-            except Exception as e:
-                print(f"❌ AI analysis exception for {opp['symbol']}: {e}")
-                # Continue without AI analysis for this opportunity
-
+        # AI analysis is done lazily when viewing opportunities (faster scan)
         return jsonify({
             'success': True,
             'opportunities': opportunities,
@@ -401,7 +387,7 @@ def analyze_pair():
             multi_pair_state['scanner'] = MarketScanner(
                 quote_currency='USDT',
                 min_volume_usdt=1000000,
-                max_pairs=100
+                max_pairs=500
             )
 
         # Initialize AI advisor if needed
@@ -454,7 +440,7 @@ def get_pairs():
             multi_pair_state['scanner'] = MarketScanner(
                 quote_currency='USDT',
                 min_volume_usdt=1000000,
-                max_pairs=100
+                max_pairs=500
             )
 
         # Get all USDT pairs from Binance

@@ -410,6 +410,8 @@ function PairSearch() {
         }}
         onStart={handleStartTrading}
         pairData={pairDataForSettings}
+        pairSymbol={singlePairToTrade}
+        aiAnalysis={pairDataForSettings?.ai_analysis}
       />
     </div>
   );

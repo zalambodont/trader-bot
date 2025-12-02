@@ -17,6 +17,8 @@ function MarketScanner() {
   const [showSettings, setShowSettings] = useState(false);
   const [isScannerCollapsed, setIsScannerCollapsed] = useState(false);
   const [singlePairToTrade, setSinglePairToTrade] = useState(null);
+  const [currentPairAnalysis, setCurrentPairAnalysis] = useState(null);
+  const [analyzingPair, setAnalyzingPair] = useState(false);
 
   const scanMarket = async () => {
     setScanning(true);
@@ -103,8 +105,28 @@ function MarketScanner() {
     }
   };
 
-  const startTradingSinglePair = (pairSymbol) => {
+  const startTradingSinglePair = async (pairSymbol) => {
+    setAnalyzingPair(true);
     setSinglePairToTrade(pairSymbol);
+    setCurrentPairAnalysis(null);
+
+    try {
+      // Call AI analysis when "Trade This Pair" is clicked
+      const response = await axios.post(`${API_URL}/api/scanner/analyze-pair`, {
+        symbol: pairSymbol,
+        timeframe: '15m'
+      });
+
+      if (response.data.success && response.data.opportunity) {
+        setCurrentPairAnalysis(response.data.opportunity);
+        logAIAnalysis(pairSymbol, response.data.opportunity.ai_analysis);
+      }
+    } catch (error) {
+      console.error('Failed to analyze pair:', error);
+      logWarning(`Failed to get AI analysis for ${pairSymbol}`);
+    }
+
+    setAnalyzingPair(false);
     setShowSettings(true);
   };
 
@@ -311,9 +333,13 @@ function MarketScanner() {
                   e.stopPropagation();
                   startTradingSinglePair(opp.symbol);
                 }}
-                disabled={activePositions.some(pos => pos.symbol === opp.symbol)}
+                disabled={activePositions.some(pos => pos.symbol === opp.symbol) || (analyzingPair && singlePairToTrade === opp.symbol)}
               >
-                {activePositions.some(pos => pos.symbol === opp.symbol) ? 'Trading Active' : 'Trade This Pair'}
+                {activePositions.some(pos => pos.symbol === opp.symbol)
+                  ? 'Trading Active'
+                  : (analyzingPair && singlePairToTrade === opp.symbol)
+                    ? 'Analyzing...'
+                    : 'Trade This Pair'}
               </button>
             </div>
           );
@@ -325,6 +351,8 @@ function MarketScanner() {
         isOpen={showSettings}
         onClose={() => setShowSettings(false)}
         onStart={handleStartTrading}
+        pairSymbol={singlePairToTrade}
+        aiAnalysis={currentPairAnalysis?.ai_analysis}
       />
     </div>
   );

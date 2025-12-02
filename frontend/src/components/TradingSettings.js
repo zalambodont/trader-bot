@@ -5,7 +5,7 @@ import './TradingSettings.css';
 // Use same hostname as frontend but with API port
 const API_URL = `http://${window.location.hostname}:5001`;
 
-function TradingSettings({ isOpen, onClose, onStart, initialSettings, pairData }) {
+function TradingSettings({ isOpen, onClose, onStart, initialSettings, pairData, pairSymbol, aiAnalysis }) {
   const [settings, setSettings] = useState({
     totalCapital: initialSettings?.totalCapital || 10000,
     maxPositions: 999, // Unlimited positions - each trade is independent
@@ -22,20 +22,38 @@ function TradingSettings({ isOpen, onClose, onStart, initialSettings, pairData }
   const [loadingAiSuggestion, setLoadingAiSuggestion] = useState(false);
   const [unsafeMode, setUnsafeMode] = useState(false);
 
-  // Fetch AI direction suggestion when modal opens with pair data
+  // Use passed AI analysis or fetch AI direction suggestion when modal opens
   useEffect(() => {
-    if (isOpen && pairData) {
-      fetchAiDirectionSuggestion();
+    if (isOpen) {
+      // Use passed aiAnalysis if available (from "Trade This Pair" click)
+      if (aiAnalysis) {
+        setAiSuggestion({
+          direction: aiAnalysis.decision === 'BUY' ? 'LONG' : aiAnalysis.decision === 'SELL' ? 'SHORT' : aiAnalysis.direction || 'LONG',
+          confidence: aiAnalysis.confidence || 0.5,
+          reasoning: aiAnalysis.reasoning || 'AI analysis provided'
+        });
+        // Auto-select AI suggested direction
+        const suggestedDirection = aiAnalysis.decision === 'BUY' ? 'LONG' : aiAnalysis.decision === 'SELL' ? 'SHORT' : aiAnalysis.direction || 'LONG';
+        setSettings(prev => ({
+          ...prev,
+          direction: suggestedDirection
+        }));
+        setLoadingAiSuggestion(false);
+      } else if (pairData) {
+        // Fallback to fetching if no aiAnalysis passed
+        fetchAiDirectionSuggestion();
+      }
     }
-  }, [isOpen, pairData]);
+  }, [isOpen, pairData, aiAnalysis]);
 
   const fetchAiDirectionSuggestion = async () => {
-    if (!pairData?.symbol) return;
+    const symbol = pairData?.symbol || pairSymbol;
+    if (!symbol) return;
 
     setLoadingAiSuggestion(true);
     try {
       const response = await axios.post(`${API_URL}/api/ai/suggest-direction`, {
-        symbol: pairData.symbol,
+        symbol: symbol,
         opportunity: pairData
       });
 
@@ -80,7 +98,7 @@ function TradingSettings({ isOpen, onClose, onStart, initialSettings, pairData }
     <div className="modal-overlay" onClick={onClose}>
       <div className="modal-content" onClick={(e) => e.stopPropagation()}>
         <div className="modal-header">
-          <h2>Trading Settings</h2>
+          <h2>Trading Settings {pairSymbol && `- ${pairSymbol}`}</h2>
           <button className="close-btn" onClick={onClose}>&times;</button>
         </div>
 

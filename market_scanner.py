@@ -282,7 +282,7 @@ class MarketScanner:
 
         # Analyze pairs in parallel
         opportunities = []
-        with ThreadPoolExecutor(max_workers=10) as executor:
+        with ThreadPoolExecutor(max_workers=20) as executor:
             futures = {
                 executor.submit(self.analyze_pair, pair['symbol'], timeframe): pair
                 for pair in filtered_pairs
